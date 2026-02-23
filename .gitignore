@@ -20,3 +20,7 @@ logs/
 # 编辑器
 .vscode/
 .idea/
+
+# OpenClaw 内部状态
+.openclaw/
+.pi/
