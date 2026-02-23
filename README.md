@@ -74,6 +74,15 @@ PostgreSQL Instance
 └── schema: public          # 共享数据（用户跨产品 SSO）
 ```
 
+## 路线图
+
+详见 [docs/roadmap.md](docs/roadmap.md)
+
+**Phase 1** ✅ 基础能力（数据库/认证/存储/Realtime）  
+**Phase 2** 🔜 支付 + 邮件 + 任务队列  
+**Phase 3** 🔜 LiteLLM AI代理 + GPU 调度  
+**Phase 4** 🔜 Prometheus + Grafana 可观测性  
+
 ## 项目接入
 
 新项目接入只需 3 步：
