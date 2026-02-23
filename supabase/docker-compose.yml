@@ -1,0 +1,191 @@
+version: "3.8"
+
+# DreamAI Platform - Supabase Self-Hosted
+# 基于官方 Supabase docker-compose 精简适配
+
+x-common-env: &common-env
+  POSTGRES_HOST: db
+  POSTGRES_PORT: 5432
+  POSTGRES_DB: postgres
+  POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+
+services:
+
+  # ============================================================
+  # API Gateway (Kong)
+  # ============================================================
+  kong:
+    image: kong:2.8.1
+    restart: unless-stopped
+    ports:
+      - "8000:8000"   # HTTP API 入口
+      - "8443:8443"   # HTTPS API 入口
+    volumes:
+      - ./config/kong.yml:/var/lib/kong/kong.yml:ro
+    environment:
+      KONG_DATABASE: "off"
+      KONG_DECLARATIVE_CONFIG: /var/lib/kong/kong.yml
+      KONG_DNS_ORDER: LAST,A,CNAME
+      KONG_PLUGINS: request-transformer,cors,key-auth,acl,basic-auth
+    depends_on:
+      - auth
+      - rest
+      - realtime
+      - storage
+
+  # ============================================================
+  # Auth (GoTrue)
+  # ============================================================
+  auth:
+    image: supabase/gotrue:v2.151.0
+    restart: unless-stopped
+    environment:
+      GOTRUE_API_HOST: "0.0.0.0"
+      GOTRUE_API_PORT: 9999
+      API_EXTERNAL_URL: ${API_EXTERNAL_URL}
+      GOTRUE_DB_DRIVER: postgres
+      GOTRUE_DB_DATABASE_URL: postgres://supabase_auth_admin:${POSTGRES_PASSWORD}@db:5432/postgres
+      GOTRUE_SITE_URL: ${SITE_URL}
+      GOTRUE_URI_ALLOW_LIST: ${ADDITIONAL_REDIRECT_URLS}
+      GOTRUE_DISABLE_SIGNUP: "false"
+      GOTRUE_JWT_ADMIN_ROLES: service_role
+      GOTRUE_JWT_AUD: authenticated
+      GOTRUE_JWT_DEFAULT_GROUP_NAME: authenticated
+      GOTRUE_JWT_EXP: 3600
+      GOTRUE_JWT_SECRET: ${JWT_SECRET}
+      # 邮件
+      GOTRUE_SMTP_HOST: ${SMTP_HOST}
+      GOTRUE_SMTP_PORT: ${SMTP_PORT}
+      GOTRUE_SMTP_USER: ${SMTP_USER}
+      GOTRUE_SMTP_PASS: ${SMTP_PASS}
+      GOTRUE_SMTP_ADMIN_EMAIL: ${SMTP_ADMIN_EMAIL}
+      GOTRUE_MAILER_AUTOCONFIRM: "false"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  # ============================================================
+  # REST API (PostgREST) - 自动生成 CRUD API
+  # ============================================================
+  rest:
+    image: postgrest/postgrest:v12.0.2
+    restart: unless-stopped
+    environment:
+      PGRST_DB_URI: postgres://authenticator:${POSTGRES_PASSWORD}@db:5432/postgres
+      PGRST_DB_SCHEMAS: public,storage,graphql_public
+      PGRST_DB_ANON_ROLE: anon
+      PGRST_JWT_SECRET: ${JWT_SECRET}
+      PGRST_DB_USE_LEGACY_GUCS: "false"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  # ============================================================
+  # Realtime - WebSocket 实时推送
+  # ============================================================
+  realtime:
+    image: supabase/realtime:v2.28.32
+    restart: unless-stopped
+    environment:
+      PORT: 4000
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USER: supabase_admin
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      DB_NAME: postgres
+      DB_SSL: "false"
+      JWT_SECRET: ${JWT_SECRET}
+      REPLICATION_MODE: RLS
+      REPLICATION_POLL_INTERVAL: 100
+      SECURE_CHANNELS: "true"
+      SLOT_NAME: supabase_realtime_rls
+      TEMPORARY_SLOT: "true"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  # ============================================================
+  # Storage - 文件存储
+  # ============================================================
+  storage:
+    image: supabase/storage-api:v0.46.4
+    restart: unless-stopped
+    volumes:
+      - ./volumes/storage:/var/lib/storage:z
+    environment:
+      ANON_KEY: ${ANON_KEY}
+      SERVICE_KEY: ${SERVICE_ROLE_KEY}
+      POSTGREST_URL: http://rest:3000
+      PGRST_JWT_SECRET: ${JWT_SECRET}
+      DATABASE_URL: postgres://supabase_storage_admin:${POSTGRES_PASSWORD}@db:5432/postgres
+      FILE_SIZE_LIMIT: 52428800   # 50MB
+      STORAGE_BACKEND: ${STORAGE_BACKEND:-file}
+      FILE_STORAGE_BACKEND_PATH: /var/lib/storage
+      TENANT_ID: stub
+      REGION: us-east-1
+      GLOBAL_S3_BUCKET: ${GLOBAL_S3_BUCKET:-stub}
+    depends_on:
+      db:
+        condition: service_healthy
+
+  # ============================================================
+  # Meta - 数据库管理 API
+  # ============================================================
+  meta:
+    image: supabase/postgres-meta:v0.80.0
+    restart: unless-stopped
+    environment:
+      PG_META_PORT: 8080
+      PG_META_DB_HOST: db
+      PG_META_DB_PORT: 5432
+      PG_META_DB_NAME: postgres
+      PG_META_DB_USER: supabase_admin
+      PG_META_DB_PASSWORD: ${POSTGRES_PASSWORD}
+    depends_on:
+      db:
+        condition: service_healthy
+
+  # ============================================================
+  # Studio - Web Dashboard
+  # ============================================================
+  studio:
+    image: supabase/studio:20240101-8e4a094
+    restart: unless-stopped
+    ports:
+      - "3000:3000"   # Dashboard 访问地址
+    environment:
+      STUDIO_PG_META_URL: http://meta:8080
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      DEFAULT_ORGANIZATION_NAME: DreamAI
+      DEFAULT_PROJECT_NAME: Platform
+      SUPABASE_URL: http://kong:8000
+      SUPABASE_PUBLIC_URL: ${API_EXTERNAL_URL}
+      SUPABASE_ANON_KEY: ${ANON_KEY}
+      SUPABASE_SERVICE_KEY: ${SERVICE_ROLE_KEY}
+
+  # ============================================================
+  # PostgreSQL 数据库
+  # ============================================================
+  db:
+    image: supabase/postgres:15.1.0.147
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./volumes/db/data:/var/lib/postgresql/data:z
+      - ./volumes/db/init:/docker-entrypoint-initdb.d:z
+    environment:
+      POSTGRES_HOST: /var/run/postgresql
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      PGPORT: 5432
+      POSTGRES_PORT: 5432
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+    healthcheck:
+      test: pg_isready -U postgres -h localhost
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  db_data:
+  storage_data:
