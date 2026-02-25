@@ -1,0 +1,96 @@
+# Supabase Ingress 配置
+# Cloudflare Tunnel → Nginx Ingress → Supabase Kong
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: supabase-ingress
+  namespace: supabase
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: "50m"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "300"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "300"
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "60"
+    # WebSocket 支持（Realtime）
+    nginx.ingress.kubernetes.io/proxy-http-version: "1.1"
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      proxy_set_header Upgrade $http_upgrade;
+      proxy_set_header Connection "upgrade";
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: supabase.dreamwiseai.com
+      http:
+        paths:
+          # 所有流量通过 Kong API Gateway
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: supabase-kong
+                port:
+                  number: 8000
+          # Studio 管理界面
+          - path: /studio
+            pathType: Prefix
+            backend:
+              service:
+                name: supabase-studio
+                port:
+                  number: 3000
+
+---
+# Cloudflare Tunnel 配置（cloudflared）
+# 注意：需要先在 Cloudflare Dashboard 创建 Tunnel，获取 token
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cloudflared
+  namespace: supabase
+  labels:
+    app: cloudflared
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cloudflared
+  template:
+    metadata:
+      labels:
+        app: cloudflared
+    spec:
+      containers:
+        - name: cloudflared
+          image: cloudflare/cloudflared:latest
+          args:
+            - tunnel
+            - --no-autoupdate
+            - run
+            - --token
+            - $(TUNNEL_TOKEN)
+          env:
+            - name: TUNNEL_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: cloudflared-secret
+                  key: token
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "50m"
+            limits:
+              memory: "128Mi"
+              cpu: "100m"
+
+---
+# Cloudflare Tunnel Token Secret（部署前填入真实 token）
+# 从 Cloudflare Dashboard → Zero Trust → Tunnels 获取
+apiVersion: v1
+kind: Secret
+metadata:
+  name: cloudflared-secret
+  namespace: supabase
+type: Opaque
+stringData:
+  token: "YOUR_CLOUDFLARE_TUNNEL_TOKEN_HERE"

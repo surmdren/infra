@@ -24,3 +24,12 @@ logs/
 # OpenClaw 内部状态
 .openclaw/
 .pi/
+
+# 密钥文件（绝对不能提交）
+secrets.env
+k8s/supabase/secrets.env
+**/.secrets.env
+
+# Agent 私人记忆（含个人信息，不提交）
+MEMORY.md
+memory/
