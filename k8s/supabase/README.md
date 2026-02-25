@@ -1,6 +1,6 @@
 # Supabase on Kubernetes 部署指南
 
-**域名:** `supabase.dreamwiseai.com` / `supabase-studio.dreamwiseai.com`  
+**域名:** `supabase-dev.dreamwiseai.com` / `supabase-studio.dreamwiseai.com`  
 **访问方式:** 宿主机 systemd cloudflared → Cloudflare Tunnel  
 **存储:** 本地 hostPath（`~/data/supabase/`）  
 **集群类型:** kind（Docker 内）  
@@ -23,7 +23,7 @@
 
 ```
 外网请求
-  └→ Cloudflare CDN (supabase.dreamwiseai.com)
+  └→ Cloudflare CDN (supabase-dev.dreamwiseai.com)
        └→ Cloudflare Tunnel (dreamai tunnel)
             └→ 宿主机 cloudflared (systemd)
                  └→ kind 容器 IP 172.18.0.2
@@ -186,10 +186,10 @@ helm upgrade supabase supabase/supabase \
 | 服务 | 地址 |
 |------|------|
 | Studio 管理界面 | `https://supabase-studio.dreamwiseai.com` |
-| API Gateway | `https://supabase.dreamwiseai.com/rest/v1/` |
-| Auth | `https://supabase.dreamwiseai.com/auth/v1/` |
-| Storage | `https://supabase.dreamwiseai.com/storage/v1/` |
-| Realtime | `wss://supabase.dreamwiseai.com/realtime/v1/` |
+| API Gateway | `https://supabase-dev.dreamwiseai.com/rest/v1/` |
+| Auth | `https://supabase-dev.dreamwiseai.com/auth/v1/` |
+| Storage | `https://supabase-dev.dreamwiseai.com/storage/v1/` |
+| Realtime | `wss://supabase-dev.dreamwiseai.com/realtime/v1/` |
 
 **管理员账号：**
 - 用户名：`supabase`
