@@ -1,48 +1,51 @@
-# Supabase Ingress 配置
-# Cloudflare Tunnel → Nginx Ingress → Supabase Kong
+# Supabase Service - NodePort 方式
+# Cloudflare Tunnel 直接连接 NodePort，不需要 nginx-ingress
 
 ---
-apiVersion: networking.k8s.io/v1
-kind: Ingress
+# Kong API Gateway - NodePort
+apiVersion: v1
+kind: Service
 metadata:
-  name: supabase-ingress
+  name: supabase-kong-nodeport
   namespace: supabase
-  annotations:
-    nginx.ingress.kubernetes.io/proxy-body-size: "50m"
-    nginx.ingress.kubernetes.io/proxy-read-timeout: "300"
-    nginx.ingress.kubernetes.io/proxy-send-timeout: "300"
-    nginx.ingress.kubernetes.io/proxy-connect-timeout: "60"
-    # WebSocket 支持（Realtime）
-    nginx.ingress.kubernetes.io/proxy-http-version: "1.1"
-    nginx.ingress.kubernetes.io/configuration-snippet: |
-      proxy_set_header Upgrade $http_upgrade;
-      proxy_set_header Connection "upgrade";
+  labels:
+    app: supabase-kong
 spec:
-  ingressClassName: nginx
-  rules:
-    - host: supabase.dreamwiseai.com
-      http:
-        paths:
-          # 所有流量通过 Kong API Gateway
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: supabase-kong
-                port:
-                  number: 8000
-          # Studio 管理界面
-          - path: /studio
-            pathType: Prefix
-            backend:
-              service:
-                name: supabase-studio
-                port:
-                  number: 3000
+  type: NodePort
+  selector:
+    app: supabase-kong
+  ports:
+    - name: http
+      port: 8000
+      targetPort: 8000
+      nodePort: 30800   # 对外端口：http://localhost:30800
+    - name: https
+      port: 8443
+      targetPort: 8443
+      nodePort: 30843
 
 ---
-# Cloudflare Tunnel 配置（cloudflared）
-# 注意：需要先在 Cloudflare Dashboard 创建 Tunnel，获取 token
+# Studio 管理界面 - NodePort
+apiVersion: v1
+kind: Service
+metadata:
+  name: supabase-studio-nodeport
+  namespace: supabase
+  labels:
+    app: supabase-studio
+spec:
+  type: NodePort
+  selector:
+    app: supabase-studio
+  ports:
+    - name: http
+      port: 3000
+      targetPort: 3000
+      nodePort: 30300   # 对外端口：http://localhost:30300
+
+---
+# Cloudflare Tunnel 部署
+# 连接方式：Cloudflare → NodePort 30800 (Kong)
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -84,7 +87,7 @@ spec:
               cpu: "100m"
 
 ---
-# Cloudflare Tunnel Token Secret（部署前填入真实 token）
+# Cloudflare Tunnel Token Secret
 # 从 Cloudflare Dashboard → Zero Trust → Tunnels 获取
 apiVersion: v1
 kind: Secret

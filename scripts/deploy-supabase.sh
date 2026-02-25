@@ -54,21 +54,11 @@ helm repo add supabase "$CHART_REPO" 2>/dev/null || true
 helm repo update
 echo "✅ Helm repo 就绪"
 
-# ── 5. 安装 nginx-ingress（如果没有）───────────────────
+# ── 5. 跳过 nginx-ingress（使用 NodePort 方式）──────────
 echo ""
-echo "🌐 检查 nginx-ingress..."
-if ! kubectl get deployment -n ingress-nginx ingress-nginx-controller &>/dev/null; then
-  echo "安装 nginx-ingress..."
-  helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx 2>/dev/null || true
-  helm repo update
-  helm upgrade --install ingress-nginx ingress-nginx/ingress-nginx \
-    --namespace ingress-nginx \
-    --create-namespace \
-    --set controller.service.type=ClusterIP
-  echo "✅ nginx-ingress 安装完成"
-else
-  echo "✅ nginx-ingress 已存在"
-fi
+echo "🌐 使用 NodePort 方式暴露服务，无需 nginx-ingress"
+echo "   Kong API:  http://localhost:30800"
+echo "   Studio UI: http://localhost:30300"
 
 # ── 6. 部署 Supabase ────────────────────────────────────
 echo ""

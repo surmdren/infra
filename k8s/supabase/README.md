@@ -36,8 +36,8 @@ kubectl get nodes
 3. 创建 Tunnel，名称：`dreamai-local`
 4. 复制 Token
 5. 配置 Public Hostname：
-   - Domain: `supabase.dreamwiseai.com`
-   - Service: `http://ingress-nginx-controller.ingress-nginx:80`
+   - Domain: `supabase.dreamwiseai.com` → Service: `http://localhost:30800`（Kong API）
+   - Domain: `studio.dreamwiseai.com` → Service: `http://localhost:30300`（Studio，可选）
 
 ### 3. 填入 Cloudflare Token
 
