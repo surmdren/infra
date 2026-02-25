@@ -18,13 +18,13 @@ secret:
     privateAccessToken: "7cbXnM4lIG2XQda0DG7seXQ1G6Lvs"
 
   smtp:
-    username: ""
-    password: ""
+    username: "noreply@dreamwiseai.com"
+    password: "placeholder_smtp_password"
 
   dashboard:
     username: "supabase"
     password: "cmXyBGFZpC3v5vd"
-    openAiApiKey: ""
+    openAiApiKey: "placeholder"
 
   s3:
     keyId: "259ae341c053c74fb0475be67320310f"
@@ -196,9 +196,6 @@ deployment:
       requests:
         memory: "256Mi"
         cpu: "200m"
-      limits:
-        memory: "1Gi"
-        cpu: "500m"
 
   minio:
     resources:
