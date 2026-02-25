@@ -35,11 +35,10 @@ echo "✅ Namespace 就绪"
 # ── 2. 创建本地存储目录 ──────────────────────────────────
 echo ""
 echo "💾 创建本地存储目录..."
-sudo mkdir -p /data/supabase/db
-sudo mkdir -p /data/supabase/storage
-sudo mkdir -p /data/supabase/minio
-sudo chmod -R 777 /data/supabase
-echo "✅ 存储目录创建完成"
+mkdir -p ~/data/supabase/db
+mkdir -p ~/data/supabase/storage
+mkdir -p ~/data/supabase/minio
+echo "✅ 存储目录创建完成: ~/data/supabase/"
 
 # ── 3. 部署本地 StorageClass 和 PV ──────────────────────
 echo ""

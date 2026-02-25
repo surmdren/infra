@@ -27,7 +27,7 @@ spec:
   persistentVolumeReclaimPolicy: Retain
   storageClassName: local-storage
   hostPath:
-    path: /data/supabase/db
+    path: /home/ysurmd/data/supabase/db
     type: DirectoryOrCreate
 
 ---
@@ -46,7 +46,7 @@ spec:
   persistentVolumeReclaimPolicy: Retain
   storageClassName: local-storage
   hostPath:
-    path: /data/supabase/storage
+    path: /home/ysurmd/data/supabase/storage
     type: DirectoryOrCreate
 
 ---
@@ -65,5 +65,5 @@ spec:
   persistentVolumeReclaimPolicy: Retain
   storageClassName: local-storage
   hostPath:
-    path: /data/supabase/minio
+    path: /home/ysurmd/data/supabase/minio
     type: DirectoryOrCreate
