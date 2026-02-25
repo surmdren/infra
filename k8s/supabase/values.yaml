@@ -44,7 +44,7 @@ secret:
 environment:
   kong:
     KONG_DATABASE: "off"
-    KONG_DECLARATIVE_CONFIG: "/home/kong/kong.yml"
+    KONG_DECLARATIVE_CONFIG: "/usr/local/kong/kong.yml"
 
   auth:
     API_EXTERNAL_URL: "https://supabase.dreamwiseai.com"
@@ -143,8 +143,8 @@ deployment:
         memory: "512Mi"
         cpu: "250m"
       limits:
-        memory: "1Gi"
-        cpu: "500m"
+        memory: "2Gi"
+        cpu: "1000m"
 
   auth:
     resources:
@@ -194,11 +194,11 @@ deployment:
   kong:
     resources:
       requests:
-        memory: "128Mi"
-        cpu: "100m"
-      limits:
         memory: "256Mi"
         cpu: "200m"
+      limits:
+        memory: "1Gi"
+        cpu: "500m"
 
   minio:
     resources:
