@@ -244,6 +244,19 @@ supabase-supabase-vector      Running
 
 ---
 
+## DNS 记录（Cloudflare dreamwiseai.com 区域）
+
+通过 `cloudflared tunnel route dns` 添加（2026-02-25）：
+
+| 类型 | 名称 | 指向 | 状态 |
+|------|------|------|------|
+| CNAME | `supabase` | `c4cc4167-24f2-46c2-aa5e-628c5f67ca10.cfargotunnel.com` | ✅ Proxied |
+| CNAME | `supabase-studio` | `c4cc4167-24f2-46c2-aa5e-628c5f67ca10.cfargotunnel.com` | ✅ Proxied |
+
+> ⚠️ 添加 DNS 记录需要 `dreamwiseai.com` 区域的 cert.pem。运行 `cloudflared tunnel login` 并选择 `dreamwiseai.com`，再执行 `cloudflared tunnel route dns dreamai <hostname>`。
+
+---
+
 ## 新项目接入 Supabase
 
 在 Studio 中创建新项目，或通过 SQL 创建独立 schema：
