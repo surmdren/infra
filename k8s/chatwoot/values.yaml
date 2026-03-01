@@ -48,7 +48,7 @@ postgresql:
   auth:
     username: "chatwoot"
     password: "chatwoot_k8s_secret_2024"
-    postgresPassword: "postgres_k8s_secret_2024"
+    postgresPassword: "chatwoot_k8s_secret_2024"
     database: "chatwoot_production"
   primary:
     persistence:
