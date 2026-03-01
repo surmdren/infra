@@ -1,5 +1,14 @@
 # 新项目接入指南
 
+## 共享基础设施一览
+
+| 服务 | 用途 | 内网地址 | 公网域名 |
+|------|------|----------|----------|
+| **Supabase** | 数据库 / Auth / Storage / REST API | `http://172.18.0.2:30086` | `https://supabase-dev.dreamwiseai.com` |
+| **Chatwoot** | 客服聊天系统 | `http://172.18.0.2:30091` | `https://chatwoot.dreamwiseai.com` |
+
+---
+
 ## 5 分钟接入流程
 
 ### Step 1：在 platform 创建项目 schema
@@ -119,4 +128,93 @@ ALTER TABLE your_project_name.documents
 SELECT * FROM your_project_name.documents
 ORDER BY embedding <-> '[0.1, 0.2, ...]'::vector
 LIMIT 5;
+```
+
+---
+
+## 接入 Chatwoot 客服系统
+
+### Step 1：创建 Inbox
+
+1. 登录 [https://chatwoot.dreamwiseai.com](https://chatwoot.dreamwiseai.com)
+2. Settings → Inboxes → New Inbox → **Website**
+3. 填入你的 SaaS 域名，完成创建
+4. 复制生成的 `website_token`
+
+### Step 2：嵌入 Widget
+
+在前端 HTML `<body>` 底部或 Next.js 的 `layout.tsx` 里加入：
+
+```html
+<!-- 纯 HTML 项目 -->
+<script>
+  window.chatwootSettings = {
+    position: 'right',
+    locale: 'zh_CN',
+  };
+  (function(d,t) {
+    var BASE_URL = "https://chatwoot.dreamwiseai.com";
+    var g = d.createElement(t), s = d.getElementsByTagName(t)[0];
+    g.src = BASE_URL + "/packs/js/sdk.js";
+    g.defer = true;
+    g.async = true;
+    s.parentNode.insertBefore(g, s);
+    g.onload = function() {
+      window.chatwootSDK.run({
+        websiteToken: 'YOUR_INBOX_TOKEN',  // ← 每个 SaaS 不同
+        baseUrl: BASE_URL
+      });
+    };
+  })(document, "script");
+</script>
+```
+
+```typescript
+// Next.js layout.tsx
+import Script from 'next/script'
+
+export default function RootLayout({ children }) {
+  return (
+    <html>
+      <body>
+        {children}
+        <Script id="chatwoot" strategy="afterInteractive">{`
+          window.chatwootSettings = { position: 'right', locale: 'zh_CN' };
+          (function(d,t) {
+            var BASE_URL = "https://chatwoot.dreamwiseai.com";
+            var g = d.createElement(t), s = d.getElementsByTagName(t)[0];
+            g.src = BASE_URL + "/packs/js/sdk.js";
+            g.defer = true; g.async = true;
+            s.parentNode.insertBefore(g, s);
+            g.onload = function() {
+              window.chatwootSDK.run({
+                websiteToken: process.env.NEXT_PUBLIC_CHATWOOT_TOKEN,
+                baseUrl: BASE_URL
+              });
+            };
+          })(document, "script");
+        `}</Script>
+      </body>
+    </html>
+  )
+}
+```
+
+### Step 3：环境变量
+
+```bash
+# .env
+NEXT_PUBLIC_CHATWOOT_TOKEN=your_inbox_token_here
+```
+
+### Step 4（可选）：识别登录用户
+
+让客服能看到是哪个用户在咨询：
+
+```typescript
+// 用户登录后调用
+window.$chatwoot?.setUser(user.id, {
+  name: user.name,
+  email: user.email,
+})
 ```
