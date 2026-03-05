@@ -33,3 +33,10 @@ k8s/supabase/secrets.env
 # Agent 私人记忆（含个人信息，不提交）
 MEMORY.md
 memory/
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.backup
+*.tfvars
+!*.tfvars.example
