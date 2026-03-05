@@ -16,14 +16,28 @@ module "security_groups" {
   vpc_id       = module.vpc.vpc_id
 }
 
-module "ec2" {
+module "ec2_public" {
   source            = "../../modules/ec2"
   project_name      = local.project_name
   environment       = local.environment
-  subnet_ids        = module.vpc.private_subnet_ids
+  subnet_ids        = [module.vpc.public_subnet_ids[0]]
   security_group_id = module.security_groups.web_sg_id
   instance_type     = var.instance_type
-  instance_count    = 2
+  instance_count    = 1
+  root_volume_size  = 100
+  create_eip        = true
+  public_keys       = var.public_keys
+  user_data         = file("${path.module}/../../modules/ec2/user_data.sh")
+}
+
+module "ec2_private" {
+  source            = "../../modules/ec2"
+  project_name      = local.project_name
+  environment       = local.environment
+  subnet_ids        = [module.vpc.private_subnet_ids[0]]
+  security_group_id = module.security_groups.web_sg_id
+  instance_type     = var.instance_type
+  instance_count    = 1
   root_volume_size  = 100
   create_eip        = false
   public_keys       = var.public_keys
