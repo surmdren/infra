@@ -24,9 +24,10 @@ locals {
 }
 
 resource "aws_instance" "main" {
+  count                  = var.instance_count
   ami                    = data.aws_ami.ubuntu.id
   instance_type          = var.instance_type
-  subnet_id              = var.subnet_id
+  subnet_id              = var.subnet_ids[count.index % length(var.subnet_ids)]
   vpc_security_group_ids = [var.security_group_id]
   key_name               = null
 
@@ -38,16 +39,16 @@ resource "aws_instance" "main" {
   user_data = local.user_data_final
 
   tags = {
-    Name = "${var.project_name}-${var.environment}-server"
+    Name = "${var.project_name}-${var.environment}-server-${count.index + 1}"
   }
 }
 
 resource "aws_eip" "main" {
-  count    = var.create_eip ? 1 : 0
-  instance = aws_instance.main.id
+  count    = var.create_eip ? var.instance_count : 0
+  instance = aws_instance.main[count.index].id
   domain   = "vpc"
 
   tags = {
-    Name = "${var.project_name}-${var.environment}-eip"
+    Name = "${var.project_name}-${var.environment}-eip-${count.index + 1}"
   }
 }

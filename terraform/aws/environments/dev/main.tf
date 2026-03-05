@@ -20,9 +20,12 @@ module "ec2" {
   source            = "../../modules/ec2"
   project_name      = local.project_name
   environment       = local.environment
-  subnet_id         = module.vpc.public_subnet_ids[0]
+  subnet_ids        = module.vpc.private_subnet_ids
   security_group_id = module.security_groups.web_sg_id
   instance_type     = var.instance_type
+  instance_count    = 2
+  root_volume_size  = 100
+  create_eip        = false
   public_keys       = var.public_keys
   user_data         = file("${path.module}/../../modules/ec2/user_data.sh")
 }
