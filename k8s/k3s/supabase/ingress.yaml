@@ -14,7 +14,7 @@ metadata:
 spec:
   ingressClassName: traefik
   rules:
-    - host: supabase-dev.dreamwiseai.com
+    - host: supabase.dreamwiseai.com
       http:
         paths:
           - path: /

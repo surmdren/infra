@@ -11,7 +11,7 @@ ingress:
     service: ssh://localhost:22
 
   # Supabase API / Auth / Storage / Realtime
-  - hostname: supabase-dev.dreamwiseai.com
+  - hostname: supabase.dreamwiseai.com
     service: http://localhost:80
 
   # Supabase Studio 管理界面
