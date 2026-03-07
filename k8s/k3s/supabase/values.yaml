@@ -1,0 +1,207 @@
+# Supabase Helm Chart Values - K3s 生产环境
+# 域名: supabase-dev.dreamwiseai.com / supabase-studio.dreamwiseai.com
+# 存储: 本地存储 (hostPath, local-path provisioner)
+# 访问: Cloudflare Tunnel → Traefik Ingress → ClusterIP Service
+
+secret:
+  jwt:
+    anonKey: "eyJhbGciOiAiSFMyNTYiLCAidHlwIjogIkpXVCJ9.eyJyb2xlIjogImFub24iLCAiaXNzIjogInN1cGFiYXNlIiwgImlhdCI6IDE2NDE3NjkyMDAsICJleHAiOiAxOTk5OTk5OTk5fQ.cz4Oj_3OgbdZ5bwZqqR-jKuQUdTt514h7Vi6_gzt1SI"
+    serviceKey: "eyJhbGciOiAiSFMyNTYiLCAidHlwIjogIkpXVCJ9.eyJyb2xlIjogInNlcnZpY2Vfcm9sZSIsICJpc3MiOiAic3VwYWJhc2UiLCAiaWF0IjogMTY0MTc2OTIwMCwgImV4cCI6IDE5OTk5OTk5OTl9.1YfCEGK185VCwWsqH5V0tZ1gMjVoEPq4esds0wIC8bE"
+    secret: "EFbGXZV7rOSvXjTJoBxyxTxULr6mX7WgD2pT7kFI"
+
+  db:
+    password: "CARQM2Xytte0dycLTFgtBuKk"
+    database: "postgres"
+
+  analytics:
+    publicAccessToken: "IvC02fg2q7xBnCYvoIya1AjlExfYWmQy"
+    privateAccessToken: "7cbXnM4lIG2XQda0DG7seXQ1G6Lvs"
+
+  smtp:
+    username: "noreply@dreamwiseai.com"
+    password: "placeholder_smtp_password"
+
+  dashboard:
+    username: "supabase"
+    password: "cmXyBGFZpC3v5vd"
+    openAiApiKey: "placeholder"
+
+  s3:
+    keyId: "259ae341c053c74fb0475be67320310f"
+    accessKey: "f9065dcfcaefc280fe5a1d3deb406e0d61cf3ded22bfa19b9cf6937a7721781a"
+
+  realtime:
+    secretKeyBase: "csyILKy7+XCDvBLspSRZiafNo1XiIHDuAw3P3j2OTXfKXp2BzjRjuZj6EsvcTNXv668mwJ04ErK7iuuv4dIh+Q=="
+
+  meta:
+    cryptoKey: "c3117d69fb9f2ffaaf68a1407f03a410"
+
+  minio:
+    user: "supa-storage"
+    password: "cTGPfsiPEGOpsodz"
+
+# ─── 环境变量配置 ──────────────────────────────────────
+environment:
+  kong:
+    KONG_DATABASE: "off"
+    KONG_DECLARATIVE_CONFIG: "/usr/local/kong/kong.yml"
+
+  auth:
+    API_EXTERNAL_URL: "https://supabase-dev.dreamwiseai.com"
+    GOTRUE_SITE_URL: "https://supabase-dev.dreamwiseai.com"
+    GOTRUE_URI_ALLOW_LIST: "*"
+    GOTRUE_DISABLE_SIGNUP: "false"
+    GOTRUE_JWT_EXPIRY: "3600"
+    GOTRUE_EXTERNAL_EMAIL_ENABLED: "true"
+    GOTRUE_MAILER_AUTOCONFIRM: "true"
+    GOTRUE_SMTP_ADMIN_EMAIL: "admin@dreamwiseai.com"
+    GOTRUE_SMTP_HOST: ""
+    GOTRUE_SMTP_PORT: "587"
+    GOTRUE_SMTP_SENDER_NAME: "DreamAI"
+
+  studio:
+    STUDIO_DEFAULT_ORGANIZATION: "DreamAI"
+    STUDIO_DEFAULT_PROJECT: "DreamAI Platform"
+    SUPABASE_PUBLIC_URL: "https://supabase-dev.dreamwiseai.com"
+    NEXT_PUBLIC_ENABLE_LOGS: "true"
+
+  rest:
+    PGRST_DB_SCHEMAS: "public,storage,graphql_public"
+    PGRST_DB_ANON_ROLE: "anon"
+    PGRST_DB_USE_LEGACY_GUCS: "false"
+    PGRST_APP_SETTINGS_JWT_EXP: "3600"
+
+  realtime:
+    PORT: "4000"
+    DB_SSL: "false"
+    DNS_NODES: "''"
+    RLIMIT_NOFILE: "10000"
+
+  storage:
+    STORAGE_BACKEND: "s3"
+    GLOBAL_S3_BUCKET: "supabase-storage"
+    GLOBAL_S3_ENDPOINT: "http://supabase-minio:9000"
+    GLOBAL_S3_FORCE_PATH_STYLE: "true"
+    GLOBAL_S3_PROTOCOL: "http"
+    REGION: "local"
+    IMGPROXY_URL: "http://supabase-imgproxy:5001"
+    FILE_SIZE_LIMIT: "52428800"  # 50MB
+
+  db:
+    POSTGRES_HOST: "/var/run/postgresql"
+    POSTGRES_PORT: "5432"
+    POSTGRES_DB: "postgres"
+    PGDATA: "/var/lib/postgresql/data"
+    JWT_EXP: "3600"
+
+  analytics:
+    LOGFLARE_SUPABASE_MODE: "true"
+    LOGFLARE_MIN_CLUSTER_SIZE: "1"
+
+# ─── 持久化存储（k3s local-path provisioner）────────────
+# k3s 内置 local-path-provisioner，直接动态分配，无需手动创建 PV
+persistence:
+  db:
+    enabled: true
+    storageClassName: "local-path"
+    size: 20Gi
+    accessModes:
+      - ReadWriteOnce
+
+  storage:
+    enabled: true
+    storageClassName: "local-path"
+    size: 20Gi
+    accessModes:
+      - ReadWriteOnce
+
+  minio:
+    enabled: true
+    storageClassName: "local-path"
+    size: 20Gi
+    accessModes:
+      - ReadWriteOnce
+
+# ─── Ingress（Traefik）────────────────────────────────
+ingress:
+  enabled: true
+  className: "traefik"
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: "web,websecure"
+  tls: []  # Cloudflare Tunnel 处理 TLS，Ingress 不需要
+
+# ─── Studio ────────────────────────────────────────────
+studio:
+  enabled: true
+
+# ─── 资源限制 ──────────────────────────────────────────
+deployment:
+  db:
+    resources:
+      requests:
+        memory: "512Mi"
+        cpu: "250m"
+      limits:
+        memory: "2Gi"
+        cpu: "1000m"
+
+  auth:
+    resources:
+      requests:
+        memory: "128Mi"
+        cpu: "100m"
+      limits:
+        memory: "256Mi"
+        cpu: "200m"
+
+  rest:
+    resources:
+      requests:
+        memory: "128Mi"
+        cpu: "100m"
+      limits:
+        memory: "256Mi"
+        cpu: "200m"
+
+  realtime:
+    resources:
+      requests:
+        memory: "128Mi"
+        cpu: "100m"
+      limits:
+        memory: "256Mi"
+        cpu: "200m"
+
+  storage:
+    resources:
+      requests:
+        memory: "128Mi"
+        cpu: "100m"
+      limits:
+        memory: "256Mi"
+        cpu: "200m"
+
+  studio:
+    resources:
+      requests:
+        memory: "256Mi"
+        cpu: "100m"
+      limits:
+        memory: "512Mi"
+        cpu: "300m"
+
+  kong:
+    resources:
+      requests:
+        memory: "256Mi"
+        cpu: "200m"
+      # 不设 limits，防止 OOMKilled
+
+  minio:
+    resources:
+      requests:
+        memory: "256Mi"
+        cpu: "100m"
+      limits:
+        memory: "512Mi"
+        cpu: "200m"

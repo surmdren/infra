@@ -1,0 +1,26 @@
+# Cloudflare Tunnel 配置 - K3s 环境
+# Tunnel 统一指向 Traefik Ingress（localhost:80）
+# 由 Traefik 根据 Host 头分发到对应 Service
+
+tunnel: cc39ad99-5d54-40ec-af02-bb5b339bbf17
+credentials-file: /etc/cloudflared/cc39ad99-5d54-40ec-af02-bb5b339bbf17.json
+
+ingress:
+  # SSH 直接转发（不走 Traefik）
+  - hostname: ssh.dreamwiseai.com
+    service: ssh://localhost:22
+
+  # Supabase API / Auth / Storage / Realtime
+  - hostname: supabase-dev.dreamwiseai.com
+    service: http://localhost:80
+
+  # Supabase Studio 管理界面
+  - hostname: supabase-studio.dreamwiseai.com
+    service: http://localhost:80
+
+  # Chatwoot 客服系统
+  - hostname: chatwoot.dreamwiseai.com
+    service: http://localhost:80
+
+  # 兜底规则
+  - service: http_status:404

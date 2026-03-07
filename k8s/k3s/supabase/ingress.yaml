@@ -1,0 +1,49 @@
+# Supabase Ingress - K3s / Traefik
+# Cloudflare Tunnel → Traefik → ClusterIP Service（无需 NodePort）
+
+---
+# Kong API Gateway (REST, Auth, Storage, Realtime)
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: supabase-api
+  namespace: supabase
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: "web,websecure"
+    traefik.ingress.kubernetes.io/router.middlewares: "supabase-strip-prefix@kubernetescrd"
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: supabase-dev.dreamwiseai.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: supabase-supabase-kong
+                port:
+                  number: 8000
+
+---
+# Studio 管理界面
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: supabase-studio
+  namespace: supabase
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: "web,websecure"
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: supabase-studio.dreamwiseai.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: supabase-supabase-studio
+                port:
+                  number: 3000

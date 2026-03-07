@@ -1,0 +1,116 @@
+# Chatwoot Helm Chart Values
+# 域名: chatwoot.dreamwiseai.com
+# 存储: 本地存储 (hostPath)
+# 访问: Cloudflare Tunnel → NodePort 30091
+
+# ─── 基础配置 ──────────────────────────────────────────
+image:
+  repository: chatwoot/chatwoot
+  tag: v4.11.1
+  pullPolicy: IfNotPresent
+
+# ─── Web 服务 ──────────────────────────────────────────
+web:
+  replicaCount: 1
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "200m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+
+# ─── Worker 服务 (Sidekiq) ─────────────────────────────
+worker:
+  replicaCount: 1
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "200m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+
+# ─── Service 配置 ──────────────────────────────────────
+service:
+  type: NodePort
+  port: 80
+  targetPort: 3000
+  nodePort: 30091
+
+# ─── Ingress（关闭，使用 NodePort + Cloudflare Tunnel）──
+ingress:
+  enabled: false
+
+# ─── PostgreSQL（内置）─────────────────────────────────
+postgresql:
+  enabled: true
+  auth:
+    username: "chatwoot"
+    password: "chatwoot_k8s_secret_2024"
+    postgresPassword: "chatwoot_k8s_secret_2024"
+    database: "chatwoot_production"
+  primary:
+    persistence:
+      enabled: true
+      storageClass: "chatwoot-storage"
+      size: 10Gi
+    resources:
+      requests:
+        memory: "256Mi"
+        cpu: "200m"
+      limits:
+        memory: "1Gi"
+        cpu: "500m"
+
+# ─── Redis（内置）──────────────────────────────────────
+redis:
+  enabled: true
+  auth:
+    password: "redis_chatwoot_2024"
+  master:
+    persistence:
+      enabled: true
+      storageClass: "chatwoot-storage"
+      size: 5Gi
+    resources:
+      requests:
+        memory: "128Mi"
+        cpu: "100m"
+      limits:
+        memory: "256Mi"
+        cpu: "200m"
+  replica:
+    replicaCount: 0
+
+# ─── Hook Migrations ──────────────────────────────────
+hooks:
+  migrate:
+    resources:
+      requests:
+        memory: "256Mi"
+        cpu: "200m"
+      limits:
+        memory: "512Mi"
+        cpu: "500m"
+
+# ─── 环境变量 ──────────────────────────────────────────
+env:
+  RAILS_ENV: "production"
+  INSTALLATION_ENV: "helm"
+  SECRET_KEY_BASE: "replace_this_with_a_real_secret_key_base_64_chars_minimum_please"
+  FRONTEND_URL: "https://chatwoot.dreamwiseai.com"
+  DEFAULT_LOCALE: "zh_CN"
+  # SMTP（按需配置）
+  MAILER_SENDER_EMAIL: "noreply@dreamwiseai.com"
+  # SMTP_ADDRESS: ""
+  # SMTP_PORT: "587"
+  # SMTP_USERNAME: ""
+  # SMTP_PASSWORD: ""
+  # SMTP_AUTHENTICATION: "plain"
+  # SMTP_ENABLE_STARTTLS_AUTO: "true"
+  # 日志
+  LOG_LEVEL: "info"
+  RAILS_LOG_TO_STDOUT: "true"
+  # 存储（本地文件系统）
+  ACTIVE_STORAGE_SERVICE: "local"

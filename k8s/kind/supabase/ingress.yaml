@@ -1,0 +1,23 @@
+# Supabase 外部访问配置
+# 方案：直接 patch Helm 创建的 Service 为 NodePort，通过 kind 端口映射暴露给宿主机
+# 宿主机的 cloudflared (systemd) 负责 Cloudflare Tunnel，不需要 K8s cloudflared pod
+
+# ============================================================
+# NodePort 分配（kind 端口映射）
+#   Kong API: NodePort 30086 → 宿主机 10003
+#   Studio:   NodePort 30087 → 宿主机 10004
+#
+# /etc/cloudflared/config.yml 路由：
+#   supabase.dreamwiseai.com       → http://172.18.0.2:30086
+#   supabase-studio.dreamwiseai.com → http://172.18.0.2:30087
+# ============================================================
+
+# 注意：以下 Service patch 已通过 kubectl patch 应用，此文件仅作留档
+# 实际 NodePort 是 patch 了 Helm 创建的 supabase-supabase-kong 和 supabase-supabase-studio
+
+# 部署命令：
+# kubectl patch svc -n supabase supabase-supabase-kong \
+#   -p '{"spec":{"type":"NodePort","ports":[{"port":8000,"targetPort":8000,"nodePort":30086,"protocol":"TCP","name":"http"}]}}'
+#
+# kubectl patch svc -n supabase supabase-supabase-studio \
+#   -p '{"spec":{"type":"NodePort","ports":[{"port":3000,"targetPort":3000,"nodePort":30087,"protocol":"TCP","name":"http"}]}}'

@@ -1,0 +1,115 @@
+# Chatwoot Helm Chart Values - K3s 生产环境
+# 域名: chatwoot.dreamwiseai.com
+# 存储: k3s local-path provisioner（动态分配）
+# 访问: Cloudflare Tunnel → Traefik Ingress → ClusterIP Service
+
+# ─── 基础配置 ──────────────────────────────────────────
+image:
+  repository: chatwoot/chatwoot
+  tag: v4.11.1
+  pullPolicy: IfNotPresent
+
+# ─── Web 服务 ──────────────────────────────────────────
+web:
+  replicaCount: 1
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "200m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+
+# ─── Worker 服务 (Sidekiq) ─────────────────────────────
+worker:
+  replicaCount: 1
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "200m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+
+# ─── Service 配置（ClusterIP，由 Traefik Ingress 暴露）──
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 3000
+
+# ─── Ingress（Traefik）────────────────────────────────
+ingress:
+  enabled: true
+  className: traefik
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: "web,websecure"
+  hosts:
+    - host: chatwoot.dreamwiseai.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []  # Cloudflare Tunnel 处理 TLS
+
+# ─── PostgreSQL（内置）─────────────────────────────────
+postgresql:
+  enabled: true
+  auth:
+    username: "chatwoot"
+    password: "chatwoot_k8s_secret_2024"
+    postgresPassword: "chatwoot_k8s_secret_2024"
+    database: "chatwoot_production"
+  primary:
+    persistence:
+      enabled: true
+      storageClass: "local-path"
+      size: 10Gi
+    resources:
+      requests:
+        memory: "256Mi"
+        cpu: "200m"
+      limits:
+        memory: "1Gi"
+        cpu: "500m"
+
+# ─── Redis（内置）──────────────────────────────────────
+redis:
+  enabled: true
+  auth:
+    password: "redis_chatwoot_2024"
+  master:
+    persistence:
+      enabled: true
+      storageClass: "local-path"
+      size: 5Gi
+    resources:
+      requests:
+        memory: "128Mi"
+        cpu: "100m"
+      limits:
+        memory: "256Mi"
+        cpu: "200m"
+  replica:
+    replicaCount: 0
+
+# ─── Hook Migrations ──────────────────────────────────
+hooks:
+  migrate:
+    resources:
+      requests:
+        memory: "256Mi"
+        cpu: "200m"
+      limits:
+        memory: "512Mi"
+        cpu: "500m"
+
+# ─── 环境变量 ──────────────────────────────────────────
+env:
+  RAILS_ENV: "production"
+  INSTALLATION_ENV: "helm"
+  SECRET_KEY_BASE: "replace_this_with_a_real_secret_key_base_64_chars_minimum_please"
+  FRONTEND_URL: "https://chatwoot.dreamwiseai.com"
+  DEFAULT_LOCALE: "zh_CN"
+  MAILER_SENDER_EMAIL: "noreply@dreamwiseai.com"
+  LOG_LEVEL: "info"
+  RAILS_LOG_TO_STDOUT: "true"
+  ACTIVE_STORAGE_SERVICE: "local"
