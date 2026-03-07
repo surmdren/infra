@@ -10,7 +10,6 @@ metadata:
   namespace: supabase
   annotations:
     traefik.ingress.kubernetes.io/router.entrypoints: "web,websecure"
-    traefik.ingress.kubernetes.io/router.middlewares: "supabase-strip-prefix@kubernetescrd"
 spec:
   ingressClassName: traefik
   rules:
