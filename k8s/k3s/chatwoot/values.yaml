@@ -40,7 +40,7 @@ service:
 # ─── Ingress（Traefik）────────────────────────────────
 ingress:
   enabled: true
-  className: traefik
+  ingressClassName: traefik
   annotations:
     traefik.ingress.kubernetes.io/router.entrypoints: "web,websecure"
   hosts:
@@ -48,6 +48,11 @@ ingress:
       paths:
         - path: /
           pathType: Prefix
+          backend:
+            service:
+              name: chatwoot
+              port:
+                number: 3000
   tls: []  # Cloudflare Tunnel 处理 TLS
 
 # ─── PostgreSQL（内置）─────────────────────────────────
@@ -59,6 +64,10 @@ postgresql:
     postgresPassword: "chatwoot_k8s_secret_2024"
     database: "chatwoot_production"
   primary:
+    initdb:
+      scripts:
+        init.sql: |
+          CREATE EXTENSION IF NOT EXISTS pg_stat_statements;
     persistence:
       enabled: true
       storageClass: "local-path"
