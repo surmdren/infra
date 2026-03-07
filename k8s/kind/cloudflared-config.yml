@@ -1,25 +1,44 @@
-# Cloudflare Tunnel 配置 - Kind Dev 环境
-# 宿主机 systemd 运行 cloudflared，流量通过 NodePort 进入 kind 集群
-
-tunnel: <TUNNEL_ID>
-credentials-file: /etc/cloudflared/<TUNNEL_ID>.json
+tunnel: c4cc4167-24f2-46c2-aa5e-628c5f67ca10
+credentials-file: /home/ysurmd/.cloudflared/c4cc4167-24f2-46c2-aa5e-628c5f67ca10.json
 
 ingress:
-  # SSH 直接转发
-  - hostname: ssh.dreamwiseai.com
+  - hostname: ssh.wise-optics.com
     service: ssh://localhost:22
 
-  # Supabase API / Auth / Storage / Realtime
+  - hostname: dev.wise-optics.com
+    service: http://172.18.0.2:30083
+  - hostname: api-dev.wise-optics.com
+    service: http://172.18.0.2:30084
+
+  - hostname: aicofounder.dreamwiseai.com
+    service: http://localhost:3001
+  - hostname: aicofounder.wise-optics.com
+    service: http://localhost:3001
+
+  - hostname: voice.wise-optics.com
+    service: http://172.18.0.2:30080
+  - hostname: voice-api.wise-optics.com
+    service: http://172.18.0.2:30081
+
+  # Supabase（K8s NodePort）
   - hostname: dev-supabase.dreamwiseai.com
     service: http://172.18.0.2:30086
-
-  # Supabase Studio 管理界面
   - hostname: dev-studio.dreamwiseai.com
     service: http://172.18.0.2:30087
+  - hostname: growth-os.dreamwiseai.com
+    service: http://172.18.0.2:30090
 
-  # Chatwoot 客服系统
+  # ReplyMate (K8s NodePort)
+  - hostname: replymate.dreamwiseai.com
+    service: http://172.18.0.2:31001
+  - hostname: api-replymate.dreamwiseai.com
+    service: http://172.18.0.2:31002
+
+  - hostname: supabase-replymate.dreamwiseai.com
+    service: http://192.168.50.189:10003
+
+  # Chatwoot 客服系统（K8s NodePort）
   - hostname: dev-chatwoot.dreamwiseai.com
     service: http://172.18.0.2:30091
 
-  # 兜底规则
   - service: http_status:404
