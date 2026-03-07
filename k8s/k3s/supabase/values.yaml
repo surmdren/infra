@@ -195,7 +195,9 @@ deployment:
       requests:
         memory: "256Mi"
         cpu: "200m"
-      # 不设 limits，防止 OOMKilled
+      limits:
+        memory: "1Gi"
+        cpu: "500m"
 
   minio:
     resources:
@@ -205,3 +207,48 @@ deployment:
       limits:
         memory: "512Mi"
         cpu: "200m"
+
+  analytics:
+    resources:
+      requests:
+        memory: "128Mi"
+        cpu: "100m"
+      limits:
+        memory: "512Mi"
+        cpu: "300m"
+
+  imgproxy:
+    resources:
+      requests:
+        memory: "128Mi"
+        cpu: "100m"
+      limits:
+        memory: "256Mi"
+        cpu: "200m"
+
+  meta:
+    resources:
+      requests:
+        memory: "64Mi"
+        cpu: "50m"
+      limits:
+        memory: "256Mi"
+        cpu: "200m"
+
+  vector:
+    resources:
+      requests:
+        memory: "64Mi"
+        cpu: "50m"
+      limits:
+        memory: "256Mi"
+        cpu: "200m"
+
+  functions:
+    resources:
+      requests:
+        memory: "128Mi"
+        cpu: "100m"
+      limits:
+        memory: "512Mi"
+        cpu: "300m"
