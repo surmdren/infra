@@ -1,0 +1,25 @@
+# Cloudflare Tunnel 配置 - Kind Dev 环境
+# 宿主机 systemd 运行 cloudflared，流量通过 NodePort 进入 kind 集群
+
+tunnel: <TUNNEL_ID>
+credentials-file: /etc/cloudflared/<TUNNEL_ID>.json
+
+ingress:
+  # SSH 直接转发
+  - hostname: ssh.dreamwiseai.com
+    service: ssh://localhost:22
+
+  # Supabase API / Auth / Storage / Realtime
+  - hostname: dev-supabase.dreamwiseai.com
+    service: http://172.18.0.2:30086
+
+  # Supabase Studio 管理界面
+  - hostname: dev-studio.dreamwiseai.com
+    service: http://172.18.0.2:30087
+
+  # Chatwoot 客服系统
+  - hostname: dev-chatwoot.dreamwiseai.com
+    service: http://172.18.0.2:30091
+
+  # 兜底规则
+  - service: http_status:404

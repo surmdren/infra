@@ -8,8 +8,8 @@
 #   Studio:   NodePort 30087 → 宿主机 10004
 #
 # /etc/cloudflared/config.yml 路由：
-#   supabase.dreamwiseai.com       → http://172.18.0.2:30086
-#   supabase-studio.dreamwiseai.com → http://172.18.0.2:30087
+#   dev-supabase.dreamwiseai.com       → http://172.18.0.2:30086
+#   dev-studio.dreamwiseai.com → http://172.18.0.2:30087
 # ============================================================
 
 # 注意：以下 Service patch 已通过 kubectl patch 应用，此文件仅作留档

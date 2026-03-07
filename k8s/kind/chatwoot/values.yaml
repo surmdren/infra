@@ -1,5 +1,5 @@
 # Chatwoot Helm Chart Values
-# 域名: chatwoot.dreamwiseai.com
+# 域名: dev-chatwoot.dreamwiseai.com
 # 存储: 本地存储 (hostPath)
 # 访问: Cloudflare Tunnel → NodePort 30091
 
@@ -99,7 +99,7 @@ env:
   RAILS_ENV: "production"
   INSTALLATION_ENV: "helm"
   SECRET_KEY_BASE: "replace_this_with_a_real_secret_key_base_64_chars_minimum_please"
-  FRONTEND_URL: "https://chatwoot.dreamwiseai.com"
+  FRONTEND_URL: "https://dev-chatwoot.dreamwiseai.com"
   DEFAULT_LOCALE: "zh_CN"
   # SMTP（按需配置）
   MAILER_SENDER_EMAIL: "noreply@dreamwiseai.com"

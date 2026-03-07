@@ -1,5 +1,5 @@
 # Supabase Helm Chart Values
-# 域名: supabase.dreamwiseai.com
+# 域名: dev-supabase.dreamwiseai.com
 # 存储: 本地存储 (hostPath)
 # 访问: Cloudflare Tunnel
 
@@ -47,8 +47,8 @@ environment:
     KONG_DECLARATIVE_CONFIG: "/usr/local/kong/kong.yml"
 
   auth:
-    API_EXTERNAL_URL: "https://supabase.dreamwiseai.com"
-    GOTRUE_SITE_URL: "https://supabase.dreamwiseai.com"
+    API_EXTERNAL_URL: "https://dev-supabase.dreamwiseai.com"
+    GOTRUE_SITE_URL: "https://dev-supabase.dreamwiseai.com"
     GOTRUE_URI_ALLOW_LIST: "*"
     GOTRUE_DISABLE_SIGNUP: "false"
     GOTRUE_JWT_EXPIRY: "3600"
@@ -62,7 +62,7 @@ environment:
   studio:
     STUDIO_DEFAULT_ORGANIZATION: "DreamAI"
     STUDIO_DEFAULT_PROJECT: "DreamAI Platform"
-    SUPABASE_PUBLIC_URL: "https://supabase.dreamwiseai.com"
+    SUPABASE_PUBLIC_URL: "https://dev-supabase.dreamwiseai.com"
     NEXT_PUBLIC_ENABLE_LOGS: "true"
 
   rest:
