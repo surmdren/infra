@@ -1,6 +1,6 @@
 ---
 name: e2e-test-generator
-description: 生成端到端 E2E 测试代码。全局最多 1-2 条测试，只覆盖最关键的用户主流程。调用真实系统，禁止使用 Mock。使用 Playwright 进行浏览器自动化测试。适用于测试核心变现流程、核心业务流程、关键用户旅程。
+description: 生成端到端 E2E 测试代码。全局最多 1-2 条测试，只覆盖最关键的用户主流程。调用真实系统，禁止使用 Mock。若 Chrome DevTools MCP 可用，优先通过它检查真实 DOM 结构和 CSS Selector，生成的 Playwright 测试更精准可靠；否则根据代码推断选择器。使用 Playwright 进行浏览器自动化测试。适用于测试核心变现流程、核心业务流程、关键用户旅程。
 ---
 
 # E2E Test Generator

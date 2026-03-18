@@ -504,15 +504,27 @@ npm install --save-dev husky lint-staged
 
 1. **遵循模块文档**: 严格按照 `DevPlan/modules/{模块编号}.md` 中的要求实现
 2. **前端必须读取设计文档**: 实现 Frontend 模块前，必须先读取 `Design/design-system.md` 和 `Design/pages/{模块名称}.md`，严格遵循设计规范
-2. **TDD 原则**: 先写测试，再写代码
-3. **质量第一**: 不达标不交付，覆盖率必须 > 80%
-4. **及时提交**: 每个模块完成后立即提交代码
-5. **文档同步**: 代码完成后更新 API 文档
-6. **目录组织**: 严格按模块类型输出到对应目录
+3. **TDD 原则**: 先写测试，再写代码
+4. **质量第一**: 不达标不交付，覆盖率必须 > 80%
+5. **及时提交**: 每个模块完成后立即提交代码
+6. **文档同步**: 代码完成后更新 API 文档
+7. **目录组织**: 严格按模块类型输出到对应目录
    - Backend → `backend/src/modules/`
    - Frontend → `frontend/src/modules/`
    - Infrastructure → `infrastructure/`
-7. **遵循最佳实践**: SOLID、Clean Code、设计模式、代码审查清单
+8. **遵循最佳实践**: SOLID、Clean Code、设计模式、代码审查清单
+9. **数据库 Migration 规范**（重要，违反会导致生产数据损坏）：
+   - Migration 文件只做 **DDL**（建表/改列/建索引/删约束），不插入业务数据
+   - 初始化数据（seed data）放到独立的 `scripts/seed.ts`，与 migration 分离
+   - DDL 必须幂等：用 `IF NOT EXISTS` / `IF EXISTS` / `DROP CONSTRAINT IF EXISTS`
+   - 若 migration 里确实需要插数据（如系统枚举值），用 `ON CONFLICT DO UPDATE`，禁止 `ON CONFLICT DO NOTHING`（后者静默跳过，会掩盖数据错误）
+   - 目录结构示例：
+     ```
+     supabase/migrations/   # 只放 DDL
+     └── 20240301_create_roles.sql
+     scripts/
+     └── seed.ts            # 初始数据，开发/测试环境单独跑
+     ```
 
 ## 适用场景
 

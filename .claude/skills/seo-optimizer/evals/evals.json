@@ -1,0 +1,23 @@
+{
+  "skill_name": "seo-optimizer",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "帮我做一下 SEO 优化。这是一个 Next.js App Router 多语言站点（中英文），域名是 app.example.com，部署在 k8s 上。现在没有任何 sitemap、robots.txt，layout.tsx 里也没有 metadata 配置。",
+      "expected_output": "Phase 1 输出 SEO/seo-audit-report.md（列出 5 类问题状态），Phase 2 生成/修改 app/sitemap.ts、app/robots.ts、app/layout.tsx（含 metadata + OG + hreflang + JSON-LD），并生成 SEO/hreflang-map.md",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "我的 Nuxt 项目上线了，想检查一下 SEO 情况。网站支持中文（/zh）、英文（/en）、日文（/ja）三种语言，用了 next-intl。",
+      "expected_output": "Phase 1 审计检测到 Nuxt 框架，输出问题清单；Phase 2 通过 useSeoMeta/useHead 注入 meta tags，用 @nuxtjs/sitemap 生成多语言 sitemap，生成覆盖三语言的 hreflang-map.md",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "项目已经有一些 SEO 配置了，但 Google Search Console 提示有问题：hreflang 标签缺失，canonical 没有正确设置。帮我检查并修复。",
+      "expected_output": "Phase 1 重点检查 canonical + hreflang 问题，Phase 2 修复缺失的 hreflang 标签并确保每页 canonical 正确，输出 hreflang-map.md 供验证",
+      "files": []
+    }
+  ]
+}

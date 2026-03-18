@@ -116,7 +116,7 @@ Architecture/
 - 表达技术栈与基础设施
 - 展示运行时组件关系
 - 体现计算、存储、网络、基础设施
-- **AI SaaS 标准栈（Vercel + Supabase）拓扑**：前端/API → Vercel CDN + Serverless/Edge Functions → Supabase（PostgreSQL + Auth + Storage + Realtime）；K8s 方案时体现 EKS/ACK 集群 + RDS + ElastiCache
+- **标准部署拓扑（K8s 自托管）**：前端/API → K8s 集群（EKS/ACK/k3s）+ Ingress → PostgreSQL + Redis；体现 EKS/ACK 集群 + RDS/自托管 PostgreSQL + ElastiCache/Redis
 
 #### 图 03：系统架构图
 **路径**: `Architecture/diagrams/03-system-architecture.mmd`

@@ -19,6 +19,7 @@
 | Phase 10: UAT | [ ] | - | UAT/uat-report.md |
 | Phase 11: 安全扫描 | [ ] | - | Security/pentest-report.md |
 | Phase 12: K8s 部署 | [ ] | - | - |
+| Phase 12b: 冒烟测试 | [ ] | - | QA/smoke-test-report.md |
 | Phase 13: 域名映射 | [ ] | - | {PROJECT_NAME}.wise-optics.com |
 
 ---
@@ -112,6 +113,13 @@
 - [ ] K8s Deployment 更新
 - [ ] 数据库迁移完成
 - [ ] 健康检查通过
+
+### [ ] Phase 12b: 部署后冒烟测试
+- [ ] 执行 /post-deploy-smoke-test
+- [ ] 所有 K8s Pod Running
+- [ ] 核心 API 端点可访问（/api/health 等）
+- [ ] 前端页面可正常加载
+- [ ] 生成 QA/smoke-test-report.md
 
 ### [ ] Phase 13: 域名映射
 - [ ] cloudflared tunnel 创建

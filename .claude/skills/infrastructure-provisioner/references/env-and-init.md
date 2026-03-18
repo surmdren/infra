@@ -2,7 +2,7 @@
 
 ## .env.local 模板
 
-### 模式 A：Supabase + Vercel
+### 模式 A：Supabase（K8s 自托管实例）
 
 ```bash
 # Schema 命名：取当前目录名，- 转 _，全小写
@@ -24,9 +24,8 @@ NEXTAUTH_SECRET=                     # openssl rand -base64 32
 OPENAI_API_KEY=
 ANTHROPIC_API_KEY=
 
-# Redis（Upstash - Vercel 推荐）
-UPSTASH_REDIS_REST_URL=https://xxxx.upstash.io
-UPSTASH_REDIS_REST_TOKEN=AXxx...
+# Redis（K8s Helm 部署）
+REDIS_URL=redis://localhost:30379
 
 # 存储
 SUPABASE_STORAGE_BUCKET=myapp-storage

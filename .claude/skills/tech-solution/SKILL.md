@@ -1,6 +1,6 @@
 ---
 name: tech-solution
-description: 生成【落地实施级】技术方案，用于项目启动和开发实施。输出：技术选型（前端/后端/数据库）、项目结构、数据架构设计（ER图/表结构）、API 设计规范、部署方案（Vercel+Supabase 或 Kubernetes）、成本估算。⚠️ 不含架构图（见 tech-architecture）。遵循"能简则简"原则。AI SaaS 标准技术栈：前端 Vercel（Next.js/React/Vue/Nuxt/Svelte/Astro）+ 后端 Vercel Serverless/Edge Functions + 数据库 Supabase。K8s 作为自托管备选方案。适用于新项目启动、技术选型决策、云资源规划、开发规范制定。当用户提到"技术方案"、"技术选型"、"项目结构"、"部署方案"、"成本估算"、"数据库设计"时触发。
+description: 生成【落地实施级】技术方案，用于项目启动和开发实施。输出：技术选型（前端/后端/数据库）、项目结构、数据架构设计（ER图/表结构）、API 设计规范、部署方案（Kubernetes 自托管）、成本估算。⚠️ 不含架构图（见 tech-architecture）。遵循"能简则简"原则。标准部署方案：K8s 自托管（AWS EKS / 阿里云 ACK / k3s）。适用于新项目启动、技术选型决策、云资源规划、开发规范制定。当用户提到"技术方案"、"技术选型"、"项目结构"、"部署方案"、"成本估算"、"数据库设计"时触发。
 ---
 
 # 业务需求 → 完整技术解决方案
@@ -71,7 +71,7 @@ $ARGUMENTS
 
 ## 核心框架
 
-> **AI SaaS 标准栈：Vercel 部署**，以下框架均可部署到 Vercel。
+> **标准部署方式：K8s 自托管**，以下框架均可容器化部署。
 
 | 场景 | 推荐 | 说明 |
 |------|------|------|
@@ -110,17 +110,9 @@ $ARGUMENTS
 
 ## 编程语言 + 框架
 
-> **AI SaaS 标准栈：Vercel Functions**（无服务器，零运维，全球分发）。
+> **标准部署方式：K8s 自托管**，选择适合业务场景的框架即可。
 
-### 选项 A：Vercel Functions（Vercel 部署时使用）
-
-| 类型 | 语言 | 说明 |
-|------|------|------|
-| **Serverless Functions** | Node.js / TypeScript ✅（推荐）| `/api` 目录，冷启动 <500ms |
-| **Serverless Functions** | Python ✅ | 适合 AI/ML 推理接口 |
-| **Edge Functions** | TypeScript ✅ | 延迟 <50ms，全球边缘执行 |
-
-### 选项 B：传统框架（K8s 自托管时使用）
+### 后端框架选型
 
 | 场景 | 推荐 |
 |------|------|
@@ -135,11 +127,10 @@ $ARGUMENTS
 
 | 类型 | 推荐 | 场景 |
 |------|------|------|
-| **AI SaaS 首选** | **Supabase** | PostgreSQL 托管 + Auth(JWT/OAuth) + Storage + Realtime |
-| 关系型（K8s 自托管） | **PostgreSQL** | 自托管通用首选 |
+| **K8s 自托管首选** | **PostgreSQL** | 自托管通用首选 |
 | 关系型（轻量） | **MySQL 8** | 简单 CRUD |
 | 文档型 | **MongoDB** | 灵活 Schema |
-| 缓存 | **Redis** | 会话/缓存（Vercel 项目可用 Upstash）|
+| 缓存 | **Redis** | 会话/缓存（K8s 用 Helm 部署）|
 
 ## Supabase 接入
 
@@ -178,7 +169,7 @@ NEXT_PUBLIC_SUPABASE_URL=https://xxxx.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
 SUPABASE_SERVICE_ROLE_KEY=eyJ...          # ⚠️ 仅后端
 SUPABASE_SCHEMA=project_name             # 项目隔离
-NEXT_PUBLIC_APP_URL=https://your-app.vercel.app
+NEXT_PUBLIC_APP_URL=https://your-domain.com
 ```
 
 ## 谨慎引入
@@ -191,38 +182,7 @@ NEXT_PUBLIC_APP_URL=https://your-app.vercel.app
 
 # 第三部分：基础设施方案
 
-## 方案选择
-
-| 维度 | Vercel + Supabase（推荐）| K8s 自托管 |
-|------|--------------------------|------------|
-| 团队规模 | 1-5 人 | 有 DevOps 团队 |
-| 上线速度 | 分钟级 | 天/周级 |
-| 日活规模 | < 10 万 | 无上限 |
-| 初期成本 | 免费 ~ $50/月 | $200+/月 |
-| 数据主权 | Supabase 托管 | 完全自控 |
-
-## A. Vercel + Supabase（AI SaaS 推荐）
-
-```bash
-# 部署
-npm i -g vercel
-vercel
-
-# 设置环境变量
-vercel env add NEXT_PUBLIC_SUPABASE_URL
-vercel env add NEXT_PUBLIC_SUPABASE_ANON_KEY
-vercel env add SUPABASE_SERVICE_ROLE_KEY
-```
-
-**成本估算：**
-
-| 服务 | 免费额度 | 付费起步 |
-|------|----------|----------|
-| **Vercel** | 100GB 带宽，无限部署 | $20/月（Pro）|
-| **Supabase** | 500MB DB，50K Auth 用户 | $25/月（Pro）|
-| **合计** | **MVP 阶段完全免费** | **约 $45/月** |
-
-## B. K8s 自托管（AWS EKS / 阿里云 ACK）
+## K8s 自托管（AWS EKS / 阿里云 ACK / k3s）
 
 **集群规格建议：**
 
@@ -295,11 +255,11 @@ vercel env add SUPABASE_SERVICE_ROLE_KEY
 ```
 技术方案总览：
 ├── 前端：React 18 + Vite + Tailwind CSS
-├── 后端：Node.js + Fastify + Supabase（PostgreSQL + Auth）
-└── 基础设施：Vercel + Supabase（免费额度覆盖 MVP 阶段）
+├── 后端：Node.js + Fastify + PostgreSQL + Redis
+└── 基础设施：K8s 自托管（k3s / AWS EKS）
 
 选型理由：
-- 日活 1 万，Vercel + Supabase 完全满足，零 DevOps
-- 图片存储用 Supabase Storage，审核可接入第三方 API
-- 后续需要自托管时迁移到 K8s（PostgreSQL + Redis）
+- 日活 1 万，k3s 单节点完全满足，PostgreSQL + Helm 管理
+- 图片存储用 MinIO（K8s 内自托管），审核可接入第三方 API
+- 数据完全自控，后续按需扩展节点
 ```

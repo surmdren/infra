@@ -1,6 +1,6 @@
 ---
 name: release-qa
-description: 开发完成后的全面技术验收测试。以 PRD、Architecture、TechSolution、DevPlan 文档为基准，系统验证软件的功能完整性（所有需求是否已实现）、技术正确性（实现是否符合架构设计）、数据流转正确性（数据在各层之间是否正确流动）。生成覆盖所有模块和 API 的测试套件，运行真实调用（禁止 Mock），输出完整的验收报告和问题修复记录。应在 dev-executor/dev-autopilot 完成后、dev-deploy 部署前执行。当用户提到"全面测试"、"技术验收"、"发布前测试"、"功能完整性验证"、"系统验收"、"release qa"、"上线前检查"、"验收测试"时触发。
+description: 开发完成后的一站式测试验收。第一阶段执行集成测试 + E2E 测试（原 dev-integration），发现问题自动定位修复，迭代直到通过；第二阶段以 PRD、Architecture、TechSolution、DevPlan 文档为基准做全面技术验收，验证功能完整性、技术正确性、数据流转正确性。禁止 Mock，输出完整验收报告。若 Chrome DevTools MCP 可用，优先通过它检查 Network 面板、Console 错误、页面渲染。应在 dev-executor/dev-autopilot 完成后、dev-deploy 部署前执行。当用户提到"全面测试"、"技术验收"、"发布前测试"、"功能完整性验证"、"系统验收"、"release qa"、"上线前检查"、"验收测试"、"集成测试"、"E2E测试"、"模块联调"时触发。
 ---
 
 # Release QA - 全面技术验收
@@ -8,17 +8,49 @@ description: 开发完成后的全面技术验收测试。以 PRD、Architecture
 ## 定位
 
 **前提**：dev-executor / dev-autopilot 已完成所有模块开发。
-**目标**：对照设计文档，逐条验证实现的正确性，在部署前发现所有问题。
+**目标**：先跑集成测试确保模块协同无误，再对照设计文档全量验收，在部署前发现所有问题。
 
 与其他测试 Skill 的区别：
 
 | Skill | 驱动源 | 数量 | 时机 |
 |-------|--------|------|------|
+| `unit-test-generator` | 业务逻辑 | 高风险函数 | 开发中 |
+| `api-test-generator` | 单个端点 | 每接口 2-5 个 | 开发中 |
 | `e2e-test-generator` | 用户流程 | 1-2 条 UI 测试 | 开发中 |
-| `dev-integration` | DevPlan 模块 | 中等，逐模块 | 开发中 |
-| **release-qa** | PRD + Architecture + TechSolution | 全量覆盖 | 发布前 |
+| **release-qa** | DevPlan 模块 + PRD + Architecture | 全量覆盖 | 发布前 |
 
 ## 工作流程
+
+### Step 0: 集成测试（原 dev-integration）
+
+在文档验收前，先验证所有模块协同工作正常：
+
+```bash
+# 读取 DevPlan，确认所有模块已完成
+cat DevPlan/checklist.md | grep -E "^\- \[[ x]\]"
+
+# 按模块顺序执行集成测试
+npm run test:integration  # 或 pytest tests/integration/ / go test ./...
+```
+
+**测试范围：**
+- API 接口间的调用链路（Service A → Service B → DB）
+- 跨模块数据流转（写入 → 处理 → 读取）
+- 认证/授权在模块边界的传递
+- 消息队列/事件的发布和消费
+
+**迭代修复循环：**
+```
+while 有失败用例:
+  1. 定位到具体失败模块（查看错误堆栈 + 日志）
+  2. 修复代码
+  3. 重新运行失败用例
+  4. 确认通过后继续
+```
+
+所有集成测试通过 → 进入 Step 1。
+
+---
 
 ### Step 1: 读取基准文档，构建验收矩阵
 

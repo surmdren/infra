@@ -1,6 +1,6 @@
 ---
 name: utm-injector
-description: 为已有项目补充 UTM 追踪、GA4、PostHog 分析能力。检测现有代码，幂等地添加缺失部分：lib/utm.ts（UTM 参数捕获与 localStorage 存储）、lib/analytics.ts（GA4 + PostHog 双轨上报）、Supabase user_utm 表迁移、layout.tsx 初始化注入、注册 AARRR 核心事件。适用于没有 UTM 注入的现有项目，或需要补充分析能力的项目。当用户提到"加 UTM"、"UTM 追踪"、"注入分析"、"补充埋点"、"加 GA4"、"加 PostHog"、"utm-injector"时触发。
+description: 为已有项目补充 UTM 追踪、GA4、PostHog 分析能力，并自动创建 PostHog Dashboard。检测现有代码，幂等地添加缺失部分：lib/utm.ts（UTM 参数捕获与 localStorage 存储）、lib/analytics.ts（GA4 + PostHog 双轨上报）、Supabase user_utm 表迁移、layout.tsx 初始化注入、注册 AARRR 核心事件。最后自动检测部署域名，通过 PostHog API 创建按域名过滤的 AARRR Dashboard（UTM 来源/漏斗/留存/付费转化）。适用于没有 UTM 注入的现有项目，或需要补充分析能力的项目。当用户提到"加 UTM"、"UTM 追踪"、"注入分析"、"补充埋点"、"加 GA4"、"加 PostHog"、"PostHog Dashboard"、"utm-injector"时触发。
 ---
 
 # UTM Injector
@@ -28,17 +28,32 @@ supabase/migrations/    → 数据库迁移目录
 
 ### Step 2: 检查环境变量
 
-读取 `.env.local`（或 `.env`），确认以下变量是否配置：
+按优先级读取以下来源，后者覆盖前者：
 
-| 变量名 | 用途 |
-|--------|------|
-| `NEXT_PUBLIC_GA_MEASUREMENT_ID` | GA4 数据流 ID（G-XXXXXXXXXX） |
-| `NEXT_PUBLIC_POSTHOG_KEY` | PostHog Project API Key |
-| `NEXT_PUBLIC_POSTHOG_HOST` | PostHog 实例地址（默认 https://app.posthog.com） |
+1. `~/.dreamai-env`（共享凭据，PostHog Key 已预配置）
+2. 项目 `.env.local` 或 `.env`（项目级覆盖）
+
+```bash
+# 加载共享凭据
+source ~/.dreamai-env 2>/dev/null
+
+# 加载项目级覆盖（优先级更高）
+source .env.local 2>/dev/null || source .env 2>/dev/null
+```
+
+确认以下变量是否已配置：
+
+| 变量名 | 来源 | 用途 |
+|--------|------|------|
+| `NEXT_PUBLIC_GA_MEASUREMENT_ID` | 项目 `.env.local` | GA4 数据流 ID（G-XXXXXXXXXX） |
+| `NEXT_PUBLIC_POSTHOG_KEY` | `~/.dreamai-env` 已配置 | PostHog Project API Key |
+| `NEXT_PUBLIC_POSTHOG_HOST` | `~/.dreamai-env` 已配置（https://us.i.posthog.com） | PostHog 实例地址 |
+| `POSTHOG_PROJECT_ID` | `~/.dreamai-env` 已配置（323381） | 用于 API 查询 |
+| `POSTHOG_PERSONAL_API_KEY` | `~/.dreamai-env` 已配置 | 用于 Step 7.2 自动验证 |
 
 **缺失变量处理：**
-- 在 `.env.local` 末尾追加缺失变量的占位符，并注明需要填写
-- 继续执行，不阻塞后续步骤
+- `NEXT_PUBLIC_POSTHOG_KEY` / `NEXT_PUBLIC_POSTHOG_HOST`：已在 `~/.dreamai-env` 预配置，无需手动填写
+- `NEXT_PUBLIC_GA_MEASUREMENT_ID`：在 `.env.local` 末尾追加占位符，继续执行不阻塞
 
 ---
 
@@ -229,6 +244,257 @@ bun add posthog-js
 
 ---
 
+### Step 7: 验证事件是否到达 PostHog
+
+**前置条件**：`NEXT_PUBLIC_POSTHOG_KEY` 已配置。
+
+#### 7.1 发送测试事件（服务端直接调用）
+
+通过 PostHog Capture API 发送一个带唯一标识的测试事件，绕过前端代码，直接验证网络连通性和 API Key 有效性：
+
+```bash
+POSTHOG_KEY=$(grep NEXT_PUBLIC_POSTHOG_KEY .env.local | cut -d '=' -f2)
+POSTHOG_HOST=$(grep NEXT_PUBLIC_POSTHOG_HOST .env.local | cut -d '=' -f2 || echo "https://app.posthog.com")
+TEST_EVENT_ID="utm_verify_$(date +%s)"
+
+curl -s -X POST "${POSTHOG_HOST}/capture/" \
+  -H "Content-Type: application/json" \
+  -d "{
+    \"api_key\": \"${POSTHOG_KEY}\",
+    \"event\": \"utm_injector_verification\",
+    \"distinct_id\": \"${TEST_EVENT_ID}\",
+    \"properties\": {
+      \"test\": true,
+      \"injected_by\": \"utm-injector\",
+      \"timestamp\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"
+    }
+  }"
+
+echo "Test event sent. distinct_id: ${TEST_EVENT_ID}"
+```
+
+#### 7.2 等待并查询 PostHog API 确认接收
+
+PostHog 事件入库约需 10-30 秒，查询前先等待：
+
+```bash
+echo "Waiting 30s for PostHog to ingest event..."
+sleep 30
+
+# 需要 PostHog Personal API Key（不同于 Project API Key，在 PostHog Settings → Personal API Keys 生成）
+# 从环境变量或提示用户输入
+POSTHOG_PERSONAL_KEY=${POSTHOG_PERSONAL_API_KEY:-""}
+
+if [ -z "$POSTHOG_PERSONAL_KEY" ]; then
+  echo "⚠️  POSTHOG_PERSONAL_API_KEY 未配置，跳过自动查询。"
+  echo "   请手动在 PostHog → Activity → Live Events 中搜索 distinct_id: ${TEST_EVENT_ID}"
+else
+  POSTHOG_PROJECT_ID=$(grep POSTHOG_PROJECT_ID .env.local | cut -d '=' -f2)
+  RESULT=$(curl -s "${POSTHOG_HOST}/api/projects/${POSTHOG_PROJECT_ID}/events/?event=utm_injector_verification&properties=%5B%7B%22key%22%3A%22distinct_id%22%2C%22value%22%3A%22${TEST_EVENT_ID}%22%7D%5D" \
+    -H "Authorization: Bearer ${POSTHOG_PERSONAL_KEY}")
+
+  COUNT=$(echo "$RESULT" | python3 -c "import sys,json; print(json.load(sys.stdin)['count'])" 2>/dev/null || echo "0")
+
+  if [ "$COUNT" -gt "0" ]; then
+    echo "✅ PostHog 验证通过：事件已成功接收（count=${COUNT}）"
+  else
+    echo "❌ PostHog 验证失败：未找到测试事件，请检查："
+    echo "   1. NEXT_PUBLIC_POSTHOG_KEY 是否正确"
+    echo "   2. POSTHOG_PROJECT_ID 是否正确"
+    echo "   3. 网络是否可访问 ${POSTHOG_HOST}"
+  fi
+fi
+```
+
+#### 7.3 无 Personal API Key 时的替代验证
+
+若无法获取 Personal API Key，引导用户手动确认：
+
+```
+手动验证步骤：
+1. 打开 PostHog → Activity → Live Events
+2. 搜索事件名：utm_injector_verification
+3. 确认 distinct_id 包含 "utm_verify_" 前缀的事件存在
+4. 检查属性中 injected_by = "utm-injector"
+
+若事件存在 → ✅ 集成验证通过
+若事件不存在（等待 2 分钟后） → ❌ 检查 API Key 和网络配置
+```
+
+#### 7.4 验证注入的业务事件（代码层面）并写入报告
+
+扫描 Step 5.3 注入的 `trackEvent` 调用，统计注入情况，生成报告写入文件：
+
+```bash
+# 统计 trackEvent 调用
+TRACK_FILES=$(grep -r "trackEvent(" --include="*.ts" --include="*.tsx" -l 2>/dev/null)
+TRACK_COUNT=$(grep -r "trackEvent(" --include="*.ts" --include="*.tsx" 2>/dev/null | wc -l | tr -d ' ')
+FILE_COUNT=$(echo "$TRACK_FILES" | grep -c . || echo 0)
+
+# 生成报告
+mkdir -p QA
+REPORT_FILE="QA/utm-verification-report.md"
+
+cat > "$REPORT_FILE" << EOF
+# UTM Injector 验证报告
+
+生成时间: $(date -u +"%Y-%m-%d %H:%M:%S UTC")
+项目: $(basename $(pwd))
+
+## 网络连通性
+- PostHog Capture API: ${CAPTURE_STATUS:-⚠️ 未执行}
+- 测试事件 distinct_id: ${TEST_EVENT_ID:-N/A}
+
+## 事件接收确认
+- utm_injector_verification: ${VERIFY_STATUS:-⚠️ 需手动确认}
+
+> 手动确认：PostHog → Activity → Live Events → 搜索 distinct_id: ${TEST_EVENT_ID:-N/A}
+
+## 代码注入统计
+- trackEvent 调用总数: ${TRACK_COUNT}
+- 注入文件数: ${FILE_COUNT}
+
+### 注入文件列表
+$(echo "$TRACK_FILES" | sed 's/^/- /')
+
+### 覆盖事件清单（来自 Step 5.2）
+<!-- 在此列出所有注入的事件名 -->
+
+## 待办
+- [ ] 配置 POSTHOG_PERSONAL_API_KEY（可选，启用自动查询验证）
+- [ ] 在 PostHog 确认测试事件已接收后删除/忽略该事件
+EOF
+
+echo "✅ 验证报告已写入: ${REPORT_FILE}"
+```
+
+**注意**：`CAPTURE_STATUS`、`VERIFY_STATUS`、`TEST_EVENT_ID` 变量由 7.1/7.2 步骤执行后赋值，确保按顺序执行。
+
+---
+
+### Step 8: 创建 PostHog Dashboard
+
+#### 8.1 获取部署域名
+
+按优先级依次尝试：
+
+```bash
+# 1. .env.local / .env
+DOMAIN=$(grep -E "^NEXT_PUBLIC_APP_URL|^DOMAIN|^APP_URL" .env.local .env 2>/dev/null | head -1 | cut -d'=' -f2 | sed 's|https\?://||')
+
+# 2. TechSolution 文档
+if [ -z "$DOMAIN" ]; then
+  DOMAIN=$(grep -rE "(domain|host):\s*\S+\.\S+" TechSolution/ 2>/dev/null | grep -oE "[a-z0-9.-]+\.[a-z]{2,}" | head -1)
+fi
+
+# 3. K8s Ingress yaml
+if [ -z "$DOMAIN" ]; then
+  DOMAIN=$(grep -rE "host:\s*\S+" infrastructure/ k8s/ 2>/dev/null | grep -oE "[a-z0-9.-]+\.[a-z]{2,}" | head -1)
+fi
+
+# 4. ~/.dreamai-env
+if [ -z "$DOMAIN" ]; then
+  DOMAIN=$(grep -E "^DOMAIN|^APP_DOMAIN" ~/.dreamai-env 2>/dev/null | head -1 | cut -d'=' -f2)
+fi
+
+# 5. 找不到 → 询问用户
+if [ -z "$DOMAIN" ]; then
+  echo "未能自动检测部署域名，请输入（如 app.example.com）："
+  read DOMAIN
+fi
+
+echo "✅ 使用域名: ${DOMAIN}"
+```
+
+#### 8.2 分析业务类型 + 已注入事件
+
+读取 PRD 和 Step 5.2 生成的事件清单，确定 Dashboard 模板：
+
+- **SaaS / 订阅制**：AARRR 漏斗 + 试用转化 + MRR 趋势
+- **电商**：商品浏览 → 加购 → 结账转化漏斗
+- **内容/工具站**：页面 PV + 核心功能使用率 + 分享率
+
+扫描代码获取真实事件列表：
+
+```bash
+EVENTS=$(grep -rh "trackEvent(" --include="*.ts" --include="*.tsx" . 2>/dev/null \
+  | grep -oE "'[a-z_]+'" | sort -u | tr -d "'" | tr '\n' ',')
+echo "已注入事件: ${EVENTS}"
+```
+
+#### 8.3 通过 PostHog API 创建 Dashboard + Insights
+
+```bash
+source ~/.dreamai-env 2>/dev/null
+source .env.local 2>/dev/null || source .env 2>/dev/null
+
+PH_HOST="${NEXT_PUBLIC_POSTHOG_HOST:-https://us.i.posthog.com}"
+PH_PROJECT="${POSTHOG_PROJECT_ID}"
+PH_KEY="${POSTHOG_PERSONAL_API_KEY}"
+PROJECT_NAME=$(basename $(pwd))
+
+# 创建 Dashboard
+DASHBOARD_ID=$(curl -s -X POST "${PH_HOST}/api/projects/${PH_PROJECT}/dashboards/" \
+  -H "Authorization: Bearer ${PH_KEY}" \
+  -H "Content-Type: application/json" \
+  -d "{\"name\": \"${PROJECT_NAME} - ${DOMAIN} Analytics\"}" \
+  | python3 -c "import sys,json; print(json.load(sys.stdin)['id'])")
+
+echo "✅ Dashboard 创建成功: ID=${DASHBOARD_ID}"
+
+# 创建标准 Insights（按 AARRR）
+create_insight() {
+  local name=$1
+  local filters=$2
+  curl -s -X POST "${PH_HOST}/api/projects/${PH_PROJECT}/insights/" \
+    -H "Authorization: Bearer ${PH_KEY}" \
+    -H "Content-Type: application/json" \
+    -d "{\"name\": \"${name}\", \"filters\": ${filters}, \"dashboards\": [${DASHBOARD_ID}]}" \
+    | python3 -c "import sys,json; d=json.load(sys.stdin); print('  ✅', d.get('name','?'), '- ID:', d.get('id','?'))"
+}
+
+# Acquisition: UTM 来源分布（过滤当前域名）
+create_insight "【获客】UTM 来源分布 - ${DOMAIN}" \
+  "{\"events\":[{\"id\":\"\$pageview\"}],\"breakdown\":\"utm_source\",\"breakdown_type\":\"event\",\"properties\":[{\"key\":\"\$host\",\"value\":\"${DOMAIN}\",\"operator\":\"exact\",\"type\":\"event\"}],\"date_from\":\"-30d\"}"
+
+# Acquisition: UTM medium 分布
+create_insight "【获客】流量媒介 (utm_medium) - ${DOMAIN}" \
+  "{\"events\":[{\"id\":\"\$pageview\"}],\"breakdown\":\"utm_medium\",\"breakdown_type\":\"event\",\"properties\":[{\"key\":\"\$host\",\"value\":\"${DOMAIN}\",\"operator\":\"exact\",\"type\":\"event\"}],\"date_from\":\"-30d\"}"
+
+# Activation: 注册转化漏斗
+create_insight "【激活】注册转化漏斗" \
+  "{\"insight\":\"FUNNELS\",\"events\":[{\"id\":\"\$pageview\"},{\"id\":\"signup_completed\"},{\"id\":\"aha_moment_reached\"}],\"date_from\":\"-30d\"}"
+
+# Retention: 用户留存
+create_insight "【留存】用户留存曲线" \
+  "{\"insight\":\"RETENTION\",\"target_entity\":{\"id\":\"signup_completed\",\"type\":\"events\"},\"returning_entity\":{\"id\":\"\$pageview\",\"type\":\"events\"},\"date_from\":\"-30d\"}"
+
+# Revenue: 付费转化漏斗
+create_insight "【变现】付费转化漏斗" \
+  "{\"insight\":\"FUNNELS\",\"events\":[{\"id\":\"pricing_page_viewed\"},{\"id\":\"upgrade_cta_clicked\"},{\"id\":\"payment_completed\"}],\"date_from\":\"-30d\"}"
+
+echo ""
+echo "✅ PostHog Dashboard 创建完成"
+echo "   访问: ${PH_HOST}/project/${PH_PROJECT}/dashboard/${DASHBOARD_ID}"
+```
+
+#### 8.4 更新验证报告
+
+将 Dashboard 链接追加到 `QA/utm-verification-report.md`：
+
+```bash
+cat >> QA/utm-verification-report.md << EOF
+
+## PostHog Dashboard
+- Dashboard ID: ${DASHBOARD_ID}
+- 域名过滤: ${DOMAIN}
+- 访问链接: ${PH_HOST}/project/${PH_PROJECT}/dashboard/${DASHBOARD_ID}
+- 包含 Insights: UTM 来源分布、流量媒介、注册漏斗、留存曲线、付费漏斗
+EOF
+```
+
+---
+
 ## 输出产物
 
 | 文件 | 状态 |
@@ -239,6 +505,7 @@ bun add posthog-js
 | `app/layout.tsx` | 修改（注入初始化代码） |
 | 各页面/组件文件 | 修改（注入事件追踪） |
 | `.env.local` | 追加缺失变量占位符 |
+| `QA/utm-verification-report.md` | 新建（Step 7 验证报告 + Step 8 Dashboard 链接） |
 
 ## 参考资源
 

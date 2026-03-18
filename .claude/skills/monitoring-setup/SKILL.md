@@ -189,18 +189,6 @@ export async function GET() {
 - 错误量 > 100/小时 → Email
 - Transaction 失败率 > 5% → Slack
 
-#### 4.2 Vercel Analytics 告警（若使用 Vercel 部署）
-
-检查 `vercel.json`，若存在则追加：
-
-```json
-{
-  "analytics": {
-    "id": "auto"
-  }
-}
-```
-
 ---
 
 ### Step 5: 生成监控报告

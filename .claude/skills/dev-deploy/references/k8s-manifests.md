@@ -146,6 +146,8 @@ spec:
 
 ## Ingress + 跨 Namespace 引用
 
+**默认：Traefik（k3s 内置，推荐）**
+
 ```yaml
 # k8s/ingress.yaml
 apiVersion: networking.k8s.io/v1
@@ -154,8 +156,7 @@ metadata:
   name: app-ingress
   namespace: {{PROJECT}}-{{ENV}}-frontend
   annotations:
-    kubernetes.io/ingress.class: alb
-    alb.ingress.kubernetes.io/scheme: internet-facing
+    kubernetes.io/ingress.class: traefik
 spec:
   rules:
   - host: {{DOMAIN}}
@@ -181,6 +182,44 @@ spec:
   externalName: backend.{{PROJECT}}-{{ENV}}-backend.svc.cluster.local
   ports:
   - port: 80
+```
+
+**TLS（HTTPS）with Traefik + cert-manager：**
+
+```yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: app-ingress
+  namespace: {{PROJECT}}-{{ENV}}-frontend
+  annotations:
+    kubernetes.io/ingress.class: traefik
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+spec:
+  tls:
+  - hosts: [{{DOMAIN}}]
+    secretName: app-tls
+  rules:
+  - host: {{DOMAIN}}
+    http:
+      paths:
+      - path: /api
+        pathType: Prefix
+        backend:
+          service: { name: backend, port: { number: 80 } }
+      - path: /
+        pathType: Prefix
+        backend:
+          service: { name: frontend, port: { number: 80 } }
+```
+
+**备用：AWS ALB（EKS 生产环境）**
+
+```yaml
+# 仅在 AWS EKS 时使用
+annotations:
+  kubernetes.io/ingress.class: alb
+  alb.ingress.kubernetes.io/scheme: internet-facing
 ```
 
 ## 多环境（Kustomize）

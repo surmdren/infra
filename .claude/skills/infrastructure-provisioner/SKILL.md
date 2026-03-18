@@ -42,11 +42,17 @@ cat > infrastructure/.gitignore << 'EOF'
 EOF
 ```
 
+自动推导项目名（与 Supabase schema 命名逻辑一致）：
+```bash
+PROJECT=$(basename $(pwd) | tr '[:upper:]' '[:lower:]' | tr '-' '_')
+echo "Project: $PROJECT"
+```
+
 询问用户：
-1. **目标环境**：testing（本地 K8s）还是 production（AWS/阿里云）？
+1. **目标环境**：testing（本地 K8s）还是 production（AWS/阿里云）？（默认 dev）
 2. **数据库模式**：Supabase 托管 还是 K8s 自托管 PostgreSQL？
 
-> 判断依据：若 TechSolution 中提到 Supabase 或使用 Vercel + Next.js，推荐 Supabase 模式。
+> 判断依据：若 TechSolution 中提到 Supabase，推荐 Supabase 模式；否则使用 K8s 自托管 PostgreSQL。
 
 ---
 
@@ -59,13 +65,14 @@ helm repo add bitnami https://charts.bitnami.com/bitnami && helm repo update
 
 kubectl create namespace postgres
 kubectl create namespace redis
-kubectl create namespace app
+kubectl create namespace ${PROJECT}-dev-app   # 应用 namespace 按项目隔离
 ```
 
 > **强制规则：创建任何 Namespace，必须同步创建 ResourceQuota + LimitRange。**
+> 共享基础设施（postgres/redis）所有项目复用；应用 namespace 每个项目独立。
 
 ```bash
-for NS in postgres redis app; do
+for NS in postgres redis ${PROJECT}-dev-app; do
   kubectl apply -f - <<EOF
 apiVersion: v1
 kind: ResourceQuota
@@ -158,7 +165,6 @@ helm install redis bitnami/redis \
 # 连接: localhost:30379
 ```
 
-**Vercel 项目**：使用 [Upstash Redis](https://upstash.com)（Serverless，按请求计费），获取 `UPSTASH_REDIS_REST_URL` 和 `UPSTASH_REDIS_REST_TOKEN`。
 
 ---
 
@@ -206,7 +212,7 @@ bash infrastructure/scripts/init.sh
 **Supabase 模式**：
 - [ ] Supabase Schema 已创建并配置 Extra Search Path
 - [ ] 跳过 PostgreSQL Helm 安装
-- [ ] Upstash Redis 已配置（Vercel 项目）
+- [ ] Redis Helm 已配置（K8s 模式）或 Supabase 无需 Redis
 
 **K8s 自托管模式**：
 - [ ] 每个 Namespace 已创建 ResourceQuota + LimitRange

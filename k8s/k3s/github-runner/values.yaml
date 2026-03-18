@@ -1,0 +1,27 @@
+# Actions Runner Controller Helm Values
+# 文档: https://github.com/actions/actions-runner-controller
+
+authSecret:
+  create: true
+  name: "github-token"
+  # github_token: 通过 kubectl create secret 创建，不写在这里
+
+image:
+  actionsRunnerRepositoryAndTag: "ghcr.io/actions/actions-runner:latest"
+
+# 资源限制
+resources:
+  requests:
+    cpu: "100m"
+    memory: "128Mi"
+  limits:
+    cpu: "500m"
+    memory: "512Mi"
+
+# 监控
+metrics:
+  serviceMonitor:
+    enabled: false
+
+# 日志级别
+logLevel: info

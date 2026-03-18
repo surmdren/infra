@@ -1,6 +1,6 @@
 ---
 name: project-manager
-description: 全自动项目经理，将碎片需求转化为完整产品并自动部署上线。编排所有 SDLC skills 按序执行：需求→架构→技术方案→UI/UX设计→开发规划→基础设施→开发（TDD）→UTM分析注入→测试→安全扫描→部署→域名映射。生成主 checklist，设置 cron job 每 10 分钟检查一次，无需人工干预自动推进直到产品上线。域名使用 cloudflared tunnel 映射到 dreamwiseai.com。⚠️ 与 jira-planner 的区别：project-manager 编排整个 SDLC 全流程（从需求到上线）；jira-planner 只负责将开发计划转换为 Jira 看板任务。当用户提到"全自动开发"、"自动做产品"、"project manager"、"项目经理"、"全流程开发"、"一键开发上线"、"无人值守开发"、"自动项目"时触发。
+description: 全自动项目经理，将碎片需求转化为完整产品并自动部署上线。编排所有 SDLC skills 按序执行：需求→架构→技术方案→UI/UX设计→开发规划→基础设施→开发（TDD）→UTM分析注入→测试→安全扫描→部署→冒烟测试→域名映射。生成主 checklist，设置 cron job 每 10 分钟检查一次，无需人工干预自动推进直到产品上线。域名使用 cloudflared tunnel 映射到 dreamwiseai.com。⚠️ 与 jira-planner 的区别：project-manager 编排整个 SDLC 全流程（从需求到上线）；jira-planner 只负责将开发计划转换为 Jira 看板任务。当用户提到"全自动开发"、"自动做产品"、"project manager"、"项目经理"、"全流程开发"、"一键开发上线"、"无人值守开发"、"自动项目"时触发。
 ---
 
 # 全自动项目经理 (Project Manager)
@@ -217,6 +217,20 @@ bash .claude/skills/project-manager/scripts/setup_pm_cron.sh $(pwd)
 
 ---
 
+### Phase 12b: 部署后冒烟测试
+
+**前置条件：** Phase 12 完成（K8s Pod 已 Running）
+
+调用 `/post-deploy-smoke-test`，验证：
+- K8s Pod 健康状态（所有 Pod Running）
+- 核心 API 端点可用性（`/api/health` 等）
+- 前端页面可访问性
+
+**输出：** `QA/smoke-test-report.md`
+**完成标记：** `[x] Phase 12b`
+
+---
+
 ### Phase 13: 域名映射（Cloudflared Tunnel）
 
 ```bash
@@ -294,7 +308,7 @@ echo "✅ 域名已映射: https://${PROJECT_NAME}.dreamwiseai.com"
 
 ## 完成标准
 
-Phase 1-13 标记 `[x]` 且 `BLOCKED.md` 为空 → 自动生成 Phase 14 人工测试用例文档并输出提示：
+Phase 1-13（含 12b）标记 `[x]` 且 `BLOCKED.md` 为空 → 自动生成 Phase 14 人工测试用例文档并输出提示：
 
 ```
 🎉 自动化阶段全部完成！
