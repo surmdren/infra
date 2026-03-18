@@ -11,7 +11,7 @@ metadata:
 spec:
   ingressClassName: traefik
   rules:
-    - host: chatwoot.dreamwiseai.com
+    - host: chatwoot-dev.dreamwiseai.com
       http:
         paths:
           - path: /

@@ -1,5 +1,5 @@
 # Chatwoot Helm Chart Values - K3s 生产环境
-# 域名: chatwoot.dreamwiseai.com
+# 域名: chatwoot-dev.dreamwiseai.com
 # 存储: k3s local-path provisioner（动态分配）
 # 访问: Cloudflare Tunnel → Traefik Ingress → ClusterIP Service
 
@@ -44,7 +44,7 @@ ingress:
   annotations:
     traefik.ingress.kubernetes.io/router.entrypoints: "web,websecure"
   hosts:
-    - host: chatwoot.dreamwiseai.com
+    - host: chatwoot-dev.dreamwiseai.com
       paths:
         - path: /
           pathType: Prefix
@@ -116,7 +116,7 @@ env:
   RAILS_ENV: "production"
   INSTALLATION_ENV: "helm"
   SECRET_KEY_BASE: "replace_this_with_a_real_secret_key_base_64_chars_minimum_please"
-  FRONTEND_URL: "https://chatwoot.dreamwiseai.com"
+  FRONTEND_URL: "https://chatwoot-dev.dreamwiseai.com"
   DEFAULT_LOCALE: "zh_CN"
   MAILER_SENDER_EMAIL: "noreply@dreamwiseai.com"
   LOG_LEVEL: "info"

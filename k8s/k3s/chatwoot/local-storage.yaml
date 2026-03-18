@@ -1,0 +1,46 @@
+# Chatwoot 本地存储 - K3s
+
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: chatwoot-storage
+provisioner: kubernetes.io/no-provisioner
+volumeBindingMode: WaitForFirstConsumer
+reclaimPolicy: Retain
+
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: chatwoot-postgresql-pv
+  labels:
+    app: chatwoot-postgresql
+spec:
+  capacity:
+    storage: 10Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: chatwoot-storage
+  hostPath:
+    path: /home/ysurmd/data/chatwoot/postgresql
+    type: DirectoryOrCreate
+
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: chatwoot-redis-pv
+  labels:
+    app: chatwoot-redis
+spec:
+  capacity:
+    storage: 5Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: chatwoot-storage
+  hostPath:
+    path: /home/ysurmd/data/chatwoot/redis
+    type: DirectoryOrCreate

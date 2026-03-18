@@ -1,5 +1,5 @@
 # Supabase Helm Chart Values - K3s 生产环境
-# 域名: supabase.dreamwiseai.com / supabase-studio.dreamwiseai.com
+# 域名: supabase-dev.dreamwiseai.com / supabase-studio.dreamwiseai.com
 # 存储: 本地存储 (hostPath, local-path provisioner)
 # 访问: Cloudflare Tunnel → Traefik Ingress → ClusterIP Service
 
@@ -47,8 +47,8 @@ environment:
     KONG_DECLARATIVE_CONFIG: "/usr/local/kong/kong.yml"
 
   auth:
-    API_EXTERNAL_URL: "https://supabase.dreamwiseai.com"
-    GOTRUE_SITE_URL: "https://supabase.dreamwiseai.com"
+    API_EXTERNAL_URL: "https://supabase-dev.dreamwiseai.com"
+    GOTRUE_SITE_URL: "https://supabase-dev.dreamwiseai.com"
     GOTRUE_URI_ALLOW_LIST: "*"
     GOTRUE_DISABLE_SIGNUP: "false"
     GOTRUE_JWT_EXPIRY: "3600"
@@ -62,7 +62,7 @@ environment:
   studio:
     STUDIO_DEFAULT_ORGANIZATION: "DreamAI"
     STUDIO_DEFAULT_PROJECT: "DreamAI Platform"
-    SUPABASE_PUBLIC_URL: "https://supabase.dreamwiseai.com"
+    SUPABASE_PUBLIC_URL: "https://supabase-dev.dreamwiseai.com"
     NEXT_PUBLIC_ENABLE_LOGS: "true"
 
   rest:
@@ -103,21 +103,21 @@ environment:
 persistence:
   db:
     enabled: true
-    storageClassName: "local-path"
+    storageClassName: "supabase-storage"
     size: 20Gi
     accessModes:
       - ReadWriteOnce
 
   storage:
     enabled: true
-    storageClassName: "local-path"
+    storageClassName: "supabase-storage"
     size: 20Gi
     accessModes:
       - ReadWriteOnce
 
   minio:
     enabled: true
-    storageClassName: "local-path"
+    storageClassName: "supabase-storage"
     size: 20Gi
     accessModes:
       - ReadWriteOnce
@@ -196,8 +196,8 @@ deployment:
         memory: "256Mi"
         cpu: "200m"
       limits:
-        memory: "1Gi"
-        cpu: "500m"
+        memory: "2Gi"
+        cpu: "1000m"
 
   minio:
     resources:
@@ -211,11 +211,11 @@ deployment:
   analytics:
     resources:
       requests:
-        memory: "128Mi"
+        memory: "256Mi"
         cpu: "100m"
       limits:
-        memory: "512Mi"
-        cpu: "300m"
+        memory: "1Gi"
+        cpu: "500m"
 
   imgproxy:
     resources:

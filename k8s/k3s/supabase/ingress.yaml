@@ -13,7 +13,7 @@ metadata:
 spec:
   ingressClassName: traefik
   rules:
-    - host: supabase.dreamwiseai.com
+    - host: supabase-dev.dreamwiseai.com
       http:
         paths:
           - path: /
@@ -36,7 +36,7 @@ metadata:
 spec:
   ingressClassName: traefik
   rules:
-    - host: supabase-studio.dreamwiseai.com
+    - host: supabase-studio-dev.dreamwiseai.com
       http:
         paths:
           - path: /

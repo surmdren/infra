@@ -1,0 +1,65 @@
+# Supabase 本地存储 - K3s
+# 指向已有数据目录，迁移时数据零丢失
+
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: supabase-storage
+provisioner: kubernetes.io/no-provisioner
+volumeBindingMode: WaitForFirstConsumer
+reclaimPolicy: Retain
+
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: supabase-db-pv
+  labels:
+    app: supabase-db
+spec:
+  capacity:
+    storage: 20Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: supabase-storage
+  hostPath:
+    path: /home/ysurmd/data/supabase/db
+    type: DirectoryOrCreate
+
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: supabase-storage-pv
+  labels:
+    app: supabase-storage
+spec:
+  capacity:
+    storage: 20Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: supabase-storage
+  hostPath:
+    path: /home/ysurmd/data/supabase/storage
+    type: DirectoryOrCreate
+
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: supabase-minio-pv
+  labels:
+    app: supabase-minio
+spec:
+  capacity:
+    storage: 20Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: supabase-storage
+  hostPath:
+    path: /home/ysurmd/data/supabase/minio
+    type: DirectoryOrCreate
