@@ -3,6 +3,11 @@
 supabase/.env
 **/.env.local
 
+# 环境连接信息（含密钥，只提交模板）
+envs/dev.env
+envs/prod.env
+envs/staging.env
+
 # 数据库数据目录
 supabase/volumes/db/data/
 supabase/volumes/storage/
