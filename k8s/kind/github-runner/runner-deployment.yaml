@@ -4,25 +4,22 @@ metadata:
   name: dreamai-runner
   namespace: github-runner
 spec:
-  replicas: 2  # 同时运行 2 个 runner
+  replicas: 2
   template:
     spec:
-      # 替换为你的 GitHub org 或 repo
-      # org 级别 runner（推荐，所有 repo 共用）
+      # org 级别 runner（所有 repo 共用）
       organization: surmdren
-      # 或者 repo 级别 runner:
+      # 或者指定单个 repo:
       # repository: surmdren/infra
 
       image: ghcr.io/actions/actions-runner:latest
 
-      # runner 标签，workflow 里用 runs-on: self-hosted 或指定标签
       labels:
         - self-hosted
         - linux
         - x64
-        - k3s
+        - kind
 
-      # 资源限制
       resources:
         requests:
           cpu: "500m"
@@ -31,16 +28,12 @@ spec:
           cpu: "2000m"
           memory: "4Gi"
 
-      # 挂载 Docker socket（用于 docker build）
+      # Kind 环境需要特权模式才能运行 Docker-in-Docker
       dockerEnabled: true
       dockerMTU: 1450
 
-      # 工作目录大小
-      ephemeralContainers: []
+      # 特权模式（Kind 需要）
+      securityContext:
+        privileged: true
 
-      # 环境变量
       env: []
-
-      # 节点选择（可选）
-      # nodeSelector:
-      #   role: runner
