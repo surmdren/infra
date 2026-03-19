@@ -5,7 +5,7 @@
 apiVersion: actions.summerwind.dev/v1alpha1
 kind: RunnerDeployment
 metadata:
-  name: dreamwiseai-runners
+  name: cicd
   namespace: arc-runners
 spec:
   replicas: 2
