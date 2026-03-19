@@ -1,0 +1,25 @@
+# GitHub Actions Self-hosted Runner - ARC
+# Org: dreamwiseai，覆盖所有 repo
+# Labels: self-hosted, linux, x64
+
+apiVersion: actions.summerwind.dev/v1alpha1
+kind: RunnerDeployment
+metadata:
+  name: dreamwiseai-runners
+  namespace: arc-runners
+spec:
+  replicas: 2
+  template:
+    spec:
+      organization: dreamwiseai
+      labels:
+        - self-hosted
+        - linux
+        - x64
+      resources:
+        requests:
+          memory: "256Mi"
+          cpu: "200m"
+        limits:
+          memory: "1Gi"
+          cpu: "1000m"
