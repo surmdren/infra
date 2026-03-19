@@ -5,7 +5,7 @@
 apiVersion: actions.summerwind.dev/v1alpha1
 kind: RunnerDeployment
 metadata:
-  name: cicd
+  name: dreamwiseai-runners
   namespace: arc-runners
 spec:
   replicas: 2
@@ -16,6 +16,7 @@ spec:
         - self-hosted
         - linux
         - x64
+        - cicd
       resources:
         requests:
           memory: "256Mi"
