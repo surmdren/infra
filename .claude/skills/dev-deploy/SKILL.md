@@ -1,6 +1,6 @@
 ---
 name: dev-deploy
-description: 将应用部署到Kubernetes集群。构建容器镜像、推送到镜像仓库、更新K8s配置、执行数据库迁移、验证部署状态、回滚支持。本地测试环境使用 kind 集群；轻量生产/自托管环境使用 k3s（内置 Traefik Ingress + ServiceLB）；云端生产环境适用于AWS EKS、阿里云ACK。支持多环境部署（dev/staging/prod）。当用户提到"部署"、"发布"、"上线"、"deploy"、"K8s部署"、"k3s"时触发。
+description: 将应用部署到Kubernetes集群。构建容器镜像、推送到镜像仓库、更新K8s配置、执行数据库迁移、验证部署状态、回滚支持。本地测试和轻量生产/自托管环境使用 k3s（内置 Traefik Ingress + ServiceLB）；云端生产环境适用于AWS EKS、阿里云ACK。支持多环境部署（dev/staging/prod）。当用户提到"部署"、"发布"、"上线"、"deploy"、"K8s部署"、"k3s"时触发。
 ---
 
 # Kubernetes 部署执行器
@@ -34,7 +34,7 @@ dev（本地 kind）:    <project>-dev-<component>
 
 | 环境 | Namespace 格式 | 触发方式 | 资源规格 |
 |------|---------------|---------|---------|
-| dev | `<project>-dev-<component>` | 其他分支，kind 集群 | 低配置 |
+| dev | `<project>-dev-<component>` | 其他分支，k3s 集群（本地） | 低配置 |
 | main | `<project>-<component>` | main 分支推送 | 中等配置 |
 | staging | `<project>-staging-<component>` | 打 tag `v*.*.*` | 中等配置 |
 | prod | `<project>-prod-<component>` | tag + 手动审批 | 高配置 + HPA |
@@ -79,12 +79,17 @@ EOF
 
 | 集群 | 适用场景 | Ingress | 镜像加载 |
 |------|---------|---------|---------|
-| **kind** | 本地开发测试 | 需手动安装 | `kind load docker-image` |
-| **k3s** ⭐ 默认 | 轻量生产 / 自托管 / 边缘 | **Traefik（内置，默认）** | push 到 registry 或 `k3s ctr images import` |
+| **k3s** ⭐ 默认 | 本地测试 / 轻量生产 / 自托管 / 边缘 | **Traefik（内置，默认）** | push 到 registry 或 `k3s ctr images import` |
 | **AWS EKS** | 云端生产 | AWS ALB | push 到 ECR |
 | **阿里云 ACK** | 云端生产 | ALB/Nginx | push 到 ACR |
 
 > **默认 Ingress Controller：Traefik**（k3s 内置，无需额外安装）。仅在 AWS EKS 时切换为 ALB。
+>
+> **本地单节点 k3s 域名访问：** Traefik 监听 `127.0.0.1:80/443`，在 `/etc/hosts` 添加：
+> ```
+> 127.0.0.1   {project}.local
+> ```
+> 用 `127.0.0.1` 而非节点 IP，避免 Wi-Fi/VPN 切换导致 IP 变化。
 
 ---
 
@@ -141,7 +146,7 @@ ns() {
 # 确定镜像版本号
 case "${ENV}" in
   dev)
-    # 本地 kind 集群：先确保所有改动已 commit，再用 commit hash 作为镜像 tag
+    # 本地 k3s 集群：先确保所有改动已 commit，再用 commit hash 作为镜像 tag
     # 保证镜像内容与 tag 完全对应，避免调试时出现「代码和 tag 不一致」的问题
     if ! git diff --quiet || ! git diff --cached --quiet; then
       echo "⚠️  有未提交的改动，请先 commit 再部署（可用 wip: 前缀）"
@@ -175,7 +180,7 @@ esac
 > **部署策略：**
 > - `main` 分支：直接部署到 `<project>-<component>`（无 env 后缀），commit hash 作为版本号
 > - `v*.*.*` tag：先自动部署到 staging（`<project>-staging-<component>`），手动审批后同一 tag 部署到 prod（`<project>-prod-<component>`）
-> - `dev`（本地 kind）：commit hash 作为镜像 tag，不推送 registry
+> - `dev`（本地 k3s）：commit hash 作为镜像 tag，通过 `k3s ctr images import` 或私有 registry 加载
 > - `latest` / `staging-latest`：仅作为 Docker Build Cache，**不用于部署引用**
 
 ---
@@ -227,12 +232,6 @@ docker build -t frontend:${VERSION} -f frontend/Dockerfile .
 ---
 
 ## Step 3: 推送镜像仓库
-
-**本地 kind 集群**（直接加载到 kind，无需 registry）：
-```bash
-kind load docker-image backend:${VERSION} --name ${KIND_CLUSTER_NAME:-kind}
-kind load docker-image frontend:${VERSION} --name ${KIND_CLUSTER_NAME:-kind}
-```
 
 **k3s**（两种方式二选一）：
 ```bash

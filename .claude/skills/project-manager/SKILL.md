@@ -1,6 +1,6 @@
 ---
 name: project-manager
-description: 全自动项目经理，将碎片需求转化为完整产品并自动部署上线。编排所有 SDLC skills 按序执行：需求→架构→技术方案→UI/UX设计→开发规划→基础设施→开发（TDD）→UTM分析注入→测试→安全扫描→部署→冒烟测试→域名映射。生成主 checklist，设置 cron job 每 10 分钟检查一次，无需人工干预自动推进直到产品上线。域名使用 cloudflared tunnel 映射到 dreamwiseai.com。⚠️ 与 jira-planner 的区别：project-manager 编排整个 SDLC 全流程（从需求到上线）；jira-planner 只负责将开发计划转换为 Jira 看板任务。当用户提到"全自动开发"、"自动做产品"、"project manager"、"项目经理"、"全流程开发"、"一键开发上线"、"无人值守开发"、"自动项目"时触发。
+description: 全自动项目经理，将碎片需求转化为完整产品并自动部署上线。编排所有 SDLC skills 按序执行：需求→架构→技术方案→UI/UX设计→开发规划→基础设施→开发（TDD）→UTM分析注入→测试→合规安全扫描（安全渗透+版权+隐私）→部署→冒烟测试→SEO优化→域名映射。生成主 checklist，设置 cron job 每 10 分钟检查一次，无需人工干预自动推进直到产品上线。域名使用 cloudflared tunnel 映射到 dreamwiseai.com。⚠️ 与 jira-planner 的区别：project-manager 编排整个 SDLC 全流程（从需求到上线）；jira-planner 只负责将开发计划转换为 Jira 看板任务。当用户提到"全自动开发"、"自动做产品"、"project manager"、"项目经理"、"全流程开发"、"一键开发上线"、"无人值守开发"、"自动项目"时触发。
 ---
 
 # 全自动项目经理 (Project Manager)
@@ -52,7 +52,7 @@ bash .claude/skills/project-manager/scripts/setup_pm_cron.sh $(pwd)
 
 ---
 
-## 14 个执行阶段
+## 16 个执行阶段
 
 ### Phase 1: 需求分析 → PRD
 
@@ -199,11 +199,15 @@ bash .claude/skills/project-manager/scripts/setup_pm_cron.sh $(pwd)
 
 ---
 
-### Phase 11: 安全扫描
+### Phase 11: 合规安全扫描
 
-调用 `/security-pentest`，扫描 OWASP Top 10。
+依次调用以下三个扫描 skill：
 
-**输出：** `Security/pentest-report.md`
+1. **`/security-pentest`** — OWASP Top 10 安全渗透测试，输出 `Security/pentest-report.md`
+2. **`/copyright-scanner`** — 代码版权风险扫描（开源协议合规性、破解版特征码），输出 `copyright-scan/copyright-risk-report.md`
+3. **`/privacy-scanner`** — 数据隐私合规扫描（PIPL/GDPR、PII 硬编码、配置文件风险），输出 `privacy-scan/privacy-risk-report.md`
+
+**完成标准：** 三个报告均生成，无高危阻断项（HIGH 风险须修复或记录豁免理由）
 **完成标记：** `[x] Phase 11`
 
 ---
@@ -217,7 +221,7 @@ bash .claude/skills/project-manager/scripts/setup_pm_cron.sh $(pwd)
 
 ---
 
-### Phase 12b: 部署后冒烟测试
+### Phase 13: 部署后冒烟测试
 
 **前置条件：** Phase 12 完成（K8s Pod 已 Running）
 
@@ -227,11 +231,24 @@ bash .claude/skills/project-manager/scripts/setup_pm_cron.sh $(pwd)
 - 前端页面可访问性
 
 **输出：** `QA/smoke-test-report.md`
-**完成标记：** `[x] Phase 12b`
+**完成标记：** `[x] Phase 13`
 
 ---
 
-### Phase 13: 域名映射（Cloudflared Tunnel）
+### Phase 14: SEO 优化
+
+**前置条件：** Phase 13 完成（应用可访问）
+
+调用 `/seo-optimizer`，两阶段执行：
+1. **Phase 1 审计** — 扫描代码输出 SEO 问题清单（meta tags 缺失、无 sitemap、robots.txt、JSON-LD、hreflang 等）
+2. **Phase 2 修复** — 自动注入修复，支持 Next.js App/Pages Router、Nuxt、Vue SPA
+
+**输出：** `SEO/seo-audit-report.md` + `SEO/hreflang-report.md`
+**完成标记：** `[x] Phase 14`
+
+---
+
+### Phase 15: 域名映射（Cloudflared Tunnel）
 
 ```bash
 PROJECT_NAME=$(basename $(pwd))
@@ -266,13 +283,13 @@ cloudflared tunnel --config ~/.cloudflared/config.yml \
 echo "✅ 域名已映射: https://${PROJECT_NAME}.dreamwiseai.com"
 ```
 
-**完成标记：** `[x] Phase 13`
+**完成标记：** `[x] Phase 15`
 
 ---
 
-### Phase 14: 人工验收测试用例生成
+### Phase 16: 人工验收测试用例生成
 
-**前置条件：** Phase 13 完成（产品已可通过域名访问）
+**前置条件：** Phase 15 完成（产品已可通过域名访问）
 
 调用 `/manual-testing`，基于 PRD 生成人工测试用例文档，供用户在真实页面上执行最终验收。
 
@@ -290,7 +307,7 @@ echo "✅ 域名已映射: https://${PROJECT_NAME}.dreamwiseai.com"
 3. 在测试用例中勾选通过/失败
 4. 确认无 P0/P1 阻断问题后，手动标记完成
 
-**完成标记：** `[x] Phase 14`（用户手动标记）
+**完成标记：** `[x] Phase 16`（用户手动标记）
 
 ---
 
@@ -308,7 +325,7 @@ echo "✅ 域名已映射: https://${PROJECT_NAME}.dreamwiseai.com"
 
 ## 完成标准
 
-Phase 1-13（含 12b）标记 `[x]` 且 `BLOCKED.md` 为空 → 自动生成 Phase 14 人工测试用例文档并输出提示：
+Phase 1-15 标记 `[x]` 且 `BLOCKED.md` 为空 → 自动生成 Phase 16 人工测试用例文档并输出提示：
 
 ```
 🎉 自动化阶段全部完成！
@@ -320,11 +337,14 @@ PRD：      PRD/requirements.md
 测试报告：  QA/release-qa-report.md
 UAT 报告：  UAT/uat-report.md
 安全报告：  Security/pentest-report.md
+版权报告：  copyright-scan/copyright-risk-report.md
+隐私报告：  privacy-scan/privacy-risk-report.md
+SEO 报告：  SEO/seo-audit-report.md
 
 📋 待您完成：人工验收测试
 测试计划：  ManualTesting/test-plan.md
 测试用例：  ManualTesting/test-cases/
-请打开产品页面，按测试计划逐项确认后，手动标记 [x] Phase 14。
+请打开产品页面，按测试计划逐项确认后，手动标记 [x] Phase 16。
 ```
 
 ## 参考文件

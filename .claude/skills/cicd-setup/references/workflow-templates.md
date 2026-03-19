@@ -122,22 +122,39 @@ jobs:
           STAGING_URL="${{ secrets.STAGING_URL }}"
           curl -f "${STAGING_URL}/api/health" || exit 1
           echo "Staging smoke test passed"
+
+      - name: Write deployment summary
+        if: always()
+        run: |
+          STATUS="${{ job.status }}"
+          ICON=$([ "$STATUS" = "success" ] && echo "✅" || echo "❌")
+          echo "## Staging Deployment Summary ${ICON}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| 项目 | 值 |" >> $GITHUB_STEP_SUMMARY
+          echo "|------|-----|" >> $GITHUB_STEP_SUMMARY
+          echo "| Image | \`${{ env.IMAGE_NAME }}:${{ needs.build-and-push.outputs.image-tag }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Namespace | \`${{ env.K8S_NAMESPACE }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Smoke test | $([ "$STATUS" = "success" ] && echo "✅ Passed" || echo "❌ Failed") |" >> $GITHUB_STEP_SUMMARY
+          echo "| Time | $(date -u '+%Y-%m-%d %H:%M UTC') |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ "$STATUS" = "success" ]; then
+            echo "> Prod deployment pending approval. Review this summary before approving." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "> ⚠️ Staging failed — prod deployment will NOT be triggered." >> $GITHUB_STEP_SUMMARY
+          fi
 ```
 
 ---
 
-## deploy-prod.yml — 手动审批 Prod 部署
+## deploy-prod.yml — Staging 成功后自动触发，人工审批后部署 Prod
 
 ```yaml
 name: Deploy Prod
 
 on:
-  workflow_dispatch:
-    inputs:
-      image-tag:
-        description: 'Image tag to deploy (e.g. v1.2.0)'
-        required: true
-        type: string
+  workflow_run:
+    workflows: ["Deploy Staging"]   # 与 deploy-staging.yml 的 name 保持一致
+    types: [completed]
 
 env:
   ACR_REGISTRY: {{ACR_REGISTRY}}
@@ -147,10 +164,19 @@ env:
 jobs:
   deploy-prod:
     runs-on: ubuntu-latest
-    environment: production    # 触发 GitHub Environment 手动审批
+    environment: production    # 触发 GitHub Environment 手动审批门控
+    # 只在 staging 成功时才继续；tag push 时 head_branch 即为 tag 名（如 v1.2.0）
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
 
     steps:
       - uses: actions/checkout@v4
+
+      - name: Get image tag from staging run
+        id: tag
+        run: |
+          IMAGE_TAG="${{ github.event.workflow_run.head_branch }}"
+          echo "image-tag=${IMAGE_TAG}" >> $GITHUB_OUTPUT
+          echo "Deploying image tag: ${IMAGE_TAG}"
 
       - name: Setup kubectl
         uses: azure/setup-kubectl@v3
@@ -167,15 +193,15 @@ jobs:
           username: ${{ secrets.ACR_USERNAME }}
           password: ${{ secrets.ACR_PASSWORD }}
 
-      - name: Verify image exists
+      - name: Verify image exists in ACR
         run: |
-          docker pull ${{ env.IMAGE_NAME }}:${{ github.event.inputs.image-tag }}
-          echo "Image verified: ${{ env.IMAGE_NAME }}:${{ github.event.inputs.image-tag }}"
+          docker pull ${{ env.IMAGE_NAME }}:${{ steps.tag.outputs.image-tag }}
+          echo "Image verified: ${{ env.IMAGE_NAME }}:${{ steps.tag.outputs.image-tag }}"
 
       - name: Deploy to prod
         run: |
           kubectl set image deployment/{{APP_NAME}} \
-            {{APP_NAME}}=${{ env.IMAGE_NAME }}:${{ github.event.inputs.image-tag }} \
+            {{APP_NAME}}=${{ env.IMAGE_NAME }}:${{ steps.tag.outputs.image-tag }} \
             -n ${{ env.K8S_NAMESPACE }}
           kubectl rollout status deployment/{{APP_NAME}} -n ${{ env.K8S_NAMESPACE }} --timeout=300s
 
@@ -186,7 +212,7 @@ jobs:
           curl -f "${PROD_URL}/api/health" || exit 1
           echo "Prod smoke test passed"
 
-      - name: Notify on failure
+      - name: Rollback on failure
         if: failure()
         run: |
           echo "::error::Prod deployment failed! Rolling back..."
@@ -255,5 +281,5 @@ CMD ["node", "server.js"]
 | `{{IMAGE_NAME}}` | `registry.cn-hangzhou.aliyuncs.com/myco/my-app` | 用户提供 |
 | `{{APP_NAME}}` | `my-app` | package.json name |
 | `{{APP_PORT}}` | `3000` | 用户提供或默认 3000 |
-| `{{K8S_NAMESPACE_STAGING}}` | `my-app-staging` | 用户提供 |
-| `{{K8S_NAMESPACE_PROD}}` | `my-app-prod` | 用户提供 |
+| `{{K8S_NAMESPACE_STAGING}}` | `my-app-staging-backend` | 用户提供（格式：`<project>-staging-<component>`） |
+| `{{K8S_NAMESPACE_PROD}}` | `my-app-prod-backend` | 用户提供（格式：`<project>-prod-<component>`） |

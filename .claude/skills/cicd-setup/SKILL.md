@@ -14,17 +14,17 @@ PR / push to main
       │
    [ci.yml]  lint + test（目标 < 5 分钟）
       │
-  merge to main
+  merge to main（本地用 dev-deploy 脚本部署到 <project>-<component>）
       │
-  git tag v1.2.0
+  git tag v1.2.0 && git push origin v1.2.0
       │
-[deploy-staging.yml]
+[deploy-staging.yml]  触发：on push tag v*.*.*
   构建 Docker 镜像 → 推送 ACR → 部署 K8s staging → smoke test
-      │
-  手动在 GitHub Actions 点击 "Review deployments"
-      │
+      │  成功后自动触发（workflow_run）
 [deploy-prod.yml]
-  部署 K8s prod → smoke test
+  等待人工在 GitHub Actions 点击 "Review deployments" 审批
+      │  审批通过
+  复用 staging 镜像（同一 tag，不重新构建）→ 部署 K8s prod → smoke test
 ```
 
 ## 输出文件
@@ -79,7 +79,7 @@ K8s Namespace（prod）：   my-app-prod-backend      # <project>-prod-<componen
 **核心设计原则：**
 - `ci.yml`：在每个 PR 和 push to main 时运行，快速失败（lint 先跑，通过才跑 test）
 - `deploy-staging.yml`：只在 `v*.*.*` tag 上触发，用 git tag 作为 Docker 镜像 tag
-- `deploy-prod.yml`：使用 `environment: production`，配合 GitHub Environment Protection Rules 实现手动审批；复用 staging 已构建的镜像（不重新构建，保证一致性）
+- `deploy-prod.yml`：由 `deploy-staging.yml` 成功后通过 `workflow_run` 自动触发；使用 `environment: production`，配合 GitHub Environment Protection Rules 实现人工审批门控；复用 staging 已构建的同一 tag 镜像（不重新构建，保证一致性）
 
 ## Phase 3：生成 Dockerfile（如缺失）
 

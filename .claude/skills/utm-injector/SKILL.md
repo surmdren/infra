@@ -437,7 +437,7 @@ PROJECT_NAME=$(basename $(pwd))
 DASHBOARD_ID=$(curl -s -X POST "${PH_HOST}/api/projects/${PH_PROJECT}/dashboards/" \
   -H "Authorization: Bearer ${PH_KEY}" \
   -H "Content-Type: application/json" \
-  -d "{\"name\": \"${PROJECT_NAME} - ${DOMAIN} Analytics\"}" \
+  -d "{\"name\": \"${PROJECT_NAME} | ${DOMAIN}\"}" \
   | python3 -c "import sys,json; print(json.load(sys.stdin)['id'])")
 
 echo "✅ Dashboard 创建成功: ID=${DASHBOARD_ID}"
@@ -453,24 +453,24 @@ create_insight() {
     | python3 -c "import sys,json; d=json.load(sys.stdin); print('  ✅', d.get('name','?'), '- ID:', d.get('id','?'))"
 }
 
-# Acquisition: UTM 来源分布（过滤当前域名）
-create_insight "【获客】UTM 来源分布 - ${DOMAIN}" \
+# Acquisition: UTM source breakdown
+create_insight "[Acquisition] UTM Source Breakdown" \
   "{\"events\":[{\"id\":\"\$pageview\"}],\"breakdown\":\"utm_source\",\"breakdown_type\":\"event\",\"properties\":[{\"key\":\"\$host\",\"value\":\"${DOMAIN}\",\"operator\":\"exact\",\"type\":\"event\"}],\"date_from\":\"-30d\"}"
 
-# Acquisition: UTM medium 分布
-create_insight "【获客】流量媒介 (utm_medium) - ${DOMAIN}" \
+# Acquisition: UTM medium breakdown
+create_insight "[Acquisition] Traffic Medium" \
   "{\"events\":[{\"id\":\"\$pageview\"}],\"breakdown\":\"utm_medium\",\"breakdown_type\":\"event\",\"properties\":[{\"key\":\"\$host\",\"value\":\"${DOMAIN}\",\"operator\":\"exact\",\"type\":\"event\"}],\"date_from\":\"-30d\"}"
 
-# Activation: 注册转化漏斗
-create_insight "【激活】注册转化漏斗" \
+# Activation: Signup funnel
+create_insight "[Activation] Signup Funnel" \
   "{\"insight\":\"FUNNELS\",\"events\":[{\"id\":\"\$pageview\"},{\"id\":\"signup_completed\"},{\"id\":\"aha_moment_reached\"}],\"date_from\":\"-30d\"}"
 
-# Retention: 用户留存
-create_insight "【留存】用户留存曲线" \
+# Retention: User retention
+create_insight "[Retention] User Retention" \
   "{\"insight\":\"RETENTION\",\"target_entity\":{\"id\":\"signup_completed\",\"type\":\"events\"},\"returning_entity\":{\"id\":\"\$pageview\",\"type\":\"events\"},\"date_from\":\"-30d\"}"
 
-# Revenue: 付费转化漏斗
-create_insight "【变现】付费转化漏斗" \
+# Revenue: Payment conversion funnel
+create_insight "[Revenue] Payment Conversion Funnel" \
   "{\"insight\":\"FUNNELS\",\"events\":[{\"id\":\"pricing_page_viewed\"},{\"id\":\"upgrade_cta_clicked\"},{\"id\":\"payment_completed\"}],\"date_from\":\"-30d\"}"
 
 echo ""

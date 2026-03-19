@@ -15,12 +15,14 @@
 | Phase 7: 基础设施 | [ ] | - | infrastructure/ |
 | Phase 8a: 开发实现(dev-executor) | [ ] | - | src/ + DevPlan/reports/ |
 | Phase 8b: 自动巡检(dev-autopilot) | [ ] | - | DevPlan/autopilot.log |
+| Phase 8c: UTM注入 | [ ] | - | lib/utm.ts + lib/analytics.ts |
 | Phase 9: 技术验收 | [ ] | - | QA/release-qa-report.md |
 | Phase 10: UAT | [ ] | - | UAT/uat-report.md |
-| Phase 11: 安全扫描 | [ ] | - | Security/pentest-report.md |
+| Phase 11: 合规安全扫描 | [ ] | - | Security/ + copyright-scan/ + privacy-scan/ |
 | Phase 12: K8s 部署 | [ ] | - | - |
-| Phase 12b: 冒烟测试 | [ ] | - | QA/smoke-test-report.md |
-| Phase 13: 域名映射 | [ ] | - | {PROJECT_NAME}.wise-optics.com |
+| Phase 13: 冒烟测试 | [ ] | - | QA/smoke-test-report.md |
+| Phase 14: SEO 优化 | [ ] | - | SEO/seo-audit-report.md |
+| Phase 15: 域名映射 | [ ] | - | {PROJECT_NAME}.dreamwiseai.com |
 
 ---
 
@@ -100,11 +102,16 @@
 - [ ] 核心用户路径 E2E 测试通过
 - [ ] 生成 UAT/uat-report.md
 
-### [ ] Phase 11: 安全扫描
+### [ ] Phase 11: 合规安全扫描
 - [ ] 执行 /security-pentest
-- [ ] OWASP Top 10 检查通过
-- [ ] 无高危漏洞
+- [ ] OWASP Top 10 检查通过，无高危漏洞
 - [ ] 生成 Security/pentest-report.md
+- [ ] 执行 /copyright-scanner
+- [ ] 无 GPL 传染性风险，无破解版特征码
+- [ ] 生成 copyright-scan/copyright-risk-report.md
+- [ ] 执行 /privacy-scanner
+- [ ] 无 PII 硬编码，配置文件安全
+- [ ] 生成 privacy-scan/privacy-risk-report.md
 
 ### [ ] Phase 12: K8s 部署
 - [ ] 执行 /dev-deploy

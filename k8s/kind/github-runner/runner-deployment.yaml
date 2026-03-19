@@ -7,10 +7,8 @@ spec:
   replicas: 2
   template:
     spec:
-      # org 级别 runner（所有 repo 共用）
-      organization: surmdren
-      # 或者指定单个 repo:
-      # repository: surmdren/infra
+      # repo 级别 runner（后续建 org 后改为 organization）
+      repository: surmdren/infra
 
       image: ghcr.io/actions/actions-runner:latest
 
@@ -31,9 +29,5 @@ spec:
       # Kind 环境需要特权模式才能运行 Docker-in-Docker
       dockerEnabled: true
       dockerMTU: 1450
-
-      # 特权模式（Kind 需要）
-      securityContext:
-        privileged: true
 
       env: []
