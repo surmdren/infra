@@ -1,7 +1,7 @@
 # 客商交流功能 产品需求文档 (PRD)
 
 > 基于 Chatwoot 自托管实例（chatwoot-dev.dreamwiseai.com）
-> 版本：v1.0 | 状态：草稿
+> 版本：v1.1 | 状态：确认中
 
 ## 目录
 
@@ -106,9 +106,9 @@ Chatwoot 根据 inbox_identifier 路由到对应商家 Inbox
 |----------|----------|
 | Chatwoot API 创建 Inbox 失败 | 回滚，入驻流程中断，返回错误信息，触发告警 |
 | Agent 账号邮箱已存在 | 复用已有账号，重新绑定到新 Inbox |
-| 商家 Inbox 被误删 | 支持手动重新调用 API 重建，[待确认] 是否保留历史对话 |
+| 商家 Inbox 被误删 | 支持手动重新调用 API 重建；历史对话因 Inbox 删除会丢失，重建后为空 |
 | 客户消息携带错误 inbox_identifier | 返回 404，前端提示"该商家客服暂不可用" |
-| 客服离线 | Chatwoot 内置离线提示，[待确认] 是否需要邮件通知客户 |
+| 客服离线 | Chatwoot 内置离线提示，暂不做额外通知 |
 
 ---
 
@@ -123,7 +123,7 @@ Chatwoot 根据 inbox_identifier 路由到对应商家 Inbox
 - 参数：
   - `name`：商家名称（如"商家A官方客服"）
   - `channel.type`：`api`（纯 API 接入）或 `web_widget`（前端嵌入）
-  - `[待确认]` 是否需要自定义 Widget 配色以匹配商家品牌
+  - **需要自定义 Widget 配色**：商家入驻时提供品牌主色（hex），存入 `merchant_chatwoot_config`，通过 Chatwoot Inbox 更新接口 `PATCH /api/v1/accounts/{id}/inboxes/{inbox_id}` 设置 `widget_color`
 - 返回：`inbox_id`、`inbox_identifier`，存入平台数据库
 
 **子功能 1.2 — Agent 账号创建**
@@ -133,7 +133,7 @@ Chatwoot 根据 inbox_identifier 路由到对应商家 Inbox
   - `name`：商家客服名称
   - `email`：商家提供的客服邮箱
   - `role`：`agent`
-  - `[待确认]` 初始密码生成策略（随机生成后发邮件？还是商家自设？）
+  - 初始密码：**商家在平台后台自行设置**，通过平台接口传入，Chatwoot 侧不生成密码
 - 支持一个商家创建多个 Agent
 
 **子功能 1.3 — Agent 与 Inbox 绑定**
@@ -152,6 +152,7 @@ merchant_chatwoot_config (
   inbox_id           INT,
   inbox_identifier   VARCHAR,  -- 前端 Widget 使用
   account_id         INT,      -- Chatwoot Account ID
+  brand_color        VARCHAR,  -- 商家品牌主色，如 #FF6B35
   created_at         TIMESTAMP
 )
 ```
@@ -206,7 +207,7 @@ window.$chatwoot?.setUser(userId, {
 | `/api/merchant/{id}/chatwoot/config` | GET | 前端获取 inbox_identifier |
 | `/api/merchant/{id}/chatwoot/agents` | POST | 为商家新增客服账号 |
 | `/api/merchant/{id}/chatwoot/agents/{agentId}` | DELETE | 移除商家客服账号 |
-| `/api/merchant/{id}/chatwoot/teardown` | DELETE | 商家退出时清理 Inbox |
+| `/api/merchant/{id}/chatwoot/teardown` | DELETE | 商家退出时停用 Inbox（历史对话保留，仅平台管理员可删除） |
 
 ---
 
@@ -231,8 +232,8 @@ window.$chatwoot?.setUser(userId, {
 | Agent 邮箱重复 | 低 | 同一邮箱不能注册多个 Agent，需要邮箱唯一性校验策略 |
 | inbox_identifier 泄露 | 中 | 若 identifier 泄露，外部可向任意商家发送消息，需考虑鉴权机制 |
 | Chatwoot 版本升级 | 低 | API 接口可能随版本变化，需固定镜像版本并做回归测试 |
-| 历史对话归属 | [待确认] | 商家退出平台后，历史对话如何处理（保留/删除/归档）|
-| 客服离线通知 | [待确认] | 是否需要邮件/短信通知客户"客服将在X小时内回复" |
+| 历史对话归属 | ✅ 已确认 | 商家退出后历史对话保留，仅平台管理员可手动删除 |
+| 客服离线通知 | ✅ 已确认 | 使用 Chatwoot 内置离线提示，不做额外通知 |
 
 ---
 
