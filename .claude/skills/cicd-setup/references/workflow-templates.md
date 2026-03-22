@@ -17,7 +17,7 @@ on:
 
 jobs:
   lint-and-test:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, x64, cicd]
 
     steps:
       - uses: actions/checkout@v4
@@ -46,10 +46,13 @@ jobs:
 
 ---
 
-## deploy-staging.yml — Tag 触发 Staging 部署
+## deploy-prod.yml — Tag 触发，人工审批后部署 Prod
+
+> **本地 staging 测试用 `/dev-deploy` 直接部署到本地 k3s，不走 GitHub Actions，节省 CI minutes。**
+> 只有部署到生产环境才触发此 workflow。
 
 ```yaml
-name: Deploy Staging
+name: Deploy Prod
 
 on:
   push:
@@ -59,11 +62,11 @@ on:
 env:
   ACR_REGISTRY: {{ACR_REGISTRY}}
   IMAGE_NAME: {{IMAGE_NAME}}
-  K8S_NAMESPACE: {{K8S_NAMESPACE_STAGING}}
+  K8S_NAMESPACE: {{K8S_NAMESPACE_PROD}}
 
 jobs:
   build-and-push:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, x64, cicd]
     outputs:
       image-tag: ${{ steps.meta.outputs.version }}
 
@@ -88,95 +91,17 @@ jobs:
           push: true
           tags: |
             ${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.version }}
-            ${{ env.IMAGE_NAME }}:staging-latest
-          # staging-latest 仅用于加速下次构建的 Build Cache，不作为部署引用
-          # 实际部署始终使用语义化版本 tag（如 v1.2.0）
-          cache-from: type=registry,ref=${{ env.IMAGE_NAME }}:staging-latest
+            ${{ env.IMAGE_NAME }}:latest
+          cache-from: type=registry,ref=${{ env.IMAGE_NAME }}:latest
           cache-to: type=inline
 
-  deploy-staging:
-    needs: build-and-push
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup kubectl
-        uses: azure/setup-kubectl@v3
-
-      - name: Configure kubeconfig
-        run: |
-          mkdir -p ~/.kube
-          echo "${{ secrets.KUBECONFIG_STAGING }}" | base64 -d > ~/.kube/config
-
-      - name: Deploy to staging
-        run: |
-          kubectl set image deployment/{{APP_NAME}} \
-            {{APP_NAME}}=${{ env.IMAGE_NAME }}:${{ needs.build-and-push.outputs.image-tag }} \
-            -n ${{ env.K8S_NAMESPACE }}
-          kubectl rollout status deployment/{{APP_NAME}} -n ${{ env.K8S_NAMESPACE }} --timeout=300s
-
-      - name: Smoke test
-        run: |
-          sleep 10
-          STAGING_URL="${{ secrets.STAGING_URL }}"
-          curl -f "${STAGING_URL}/api/health" || exit 1
-          echo "Staging smoke test passed"
-
-      - name: Write deployment summary
-        if: always()
-        run: |
-          STATUS="${{ job.status }}"
-          ICON=$([ "$STATUS" = "success" ] && echo "✅" || echo "❌")
-          echo "## Staging Deployment Summary ${ICON}" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "| 项目 | 值 |" >> $GITHUB_STEP_SUMMARY
-          echo "|------|-----|" >> $GITHUB_STEP_SUMMARY
-          echo "| Image | \`${{ env.IMAGE_NAME }}:${{ needs.build-and-push.outputs.image-tag }}\` |" >> $GITHUB_STEP_SUMMARY
-          echo "| Namespace | \`${{ env.K8S_NAMESPACE }}\` |" >> $GITHUB_STEP_SUMMARY
-          echo "| Smoke test | $([ "$STATUS" = "success" ] && echo "✅ Passed" || echo "❌ Failed") |" >> $GITHUB_STEP_SUMMARY
-          echo "| Time | $(date -u '+%Y-%m-%d %H:%M UTC') |" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          if [ "$STATUS" = "success" ]; then
-            echo "> Prod deployment pending approval. Review this summary before approving." >> $GITHUB_STEP_SUMMARY
-          else
-            echo "> ⚠️ Staging failed — prod deployment will NOT be triggered." >> $GITHUB_STEP_SUMMARY
-          fi
-```
-
----
-
-## deploy-prod.yml — Staging 成功后自动触发，人工审批后部署 Prod
-
-```yaml
-name: Deploy Prod
-
-on:
-  workflow_run:
-    workflows: ["Deploy Staging"]   # 与 deploy-staging.yml 的 name 保持一致
-    types: [completed]
-
-env:
-  ACR_REGISTRY: {{ACR_REGISTRY}}
-  IMAGE_NAME: {{IMAGE_NAME}}
-  K8S_NAMESPACE: {{K8S_NAMESPACE_PROD}}
-
-jobs:
   deploy-prod:
-    runs-on: ubuntu-latest
+    needs: build-and-push
+    runs-on: [self-hosted, linux, x64, cicd]
     environment: production    # 触发 GitHub Environment 手动审批门控
-    # 只在 staging 成功时才继续；tag push 时 head_branch 即为 tag 名（如 v1.2.0）
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
 
     steps:
       - uses: actions/checkout@v4
-
-      - name: Get image tag from staging run
-        id: tag
-        run: |
-          IMAGE_TAG="${{ github.event.workflow_run.head_branch }}"
-          echo "image-tag=${IMAGE_TAG}" >> $GITHUB_OUTPUT
-          echo "Deploying image tag: ${IMAGE_TAG}"
 
       - name: Setup kubectl
         uses: azure/setup-kubectl@v3
@@ -193,15 +118,10 @@ jobs:
           username: ${{ secrets.ACR_USERNAME }}
           password: ${{ secrets.ACR_PASSWORD }}
 
-      - name: Verify image exists in ACR
-        run: |
-          docker pull ${{ env.IMAGE_NAME }}:${{ steps.tag.outputs.image-tag }}
-          echo "Image verified: ${{ env.IMAGE_NAME }}:${{ steps.tag.outputs.image-tag }}"
-
       - name: Deploy to prod
         run: |
           kubectl set image deployment/{{APP_NAME}} \
-            {{APP_NAME}}=${{ env.IMAGE_NAME }}:${{ steps.tag.outputs.image-tag }} \
+            {{APP_NAME}}=${{ env.IMAGE_NAME }}:${{ needs.build-and-push.outputs.image-tag }} \
             -n ${{ env.K8S_NAMESPACE }}
           kubectl rollout status deployment/{{APP_NAME}} -n ${{ env.K8S_NAMESPACE }} --timeout=300s
 
@@ -217,6 +137,20 @@ jobs:
         run: |
           echo "::error::Prod deployment failed! Rolling back..."
           kubectl rollout undo deployment/{{APP_NAME}} -n ${{ env.K8S_NAMESPACE }}
+
+      - name: Write deployment summary
+        if: always()
+        run: |
+          STATUS="${{ job.status }}"
+          ICON=$([ "$STATUS" = "success" ] && echo "✅" || echo "❌")
+          echo "## Prod Deployment Summary ${ICON}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| 项目 | 值 |" >> $GITHUB_STEP_SUMMARY
+          echo "|------|-----|" >> $GITHUB_STEP_SUMMARY
+          echo "| Image | \`${{ env.IMAGE_NAME }}:${{ needs.build-and-push.outputs.image-tag }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Namespace | \`${{ env.K8S_NAMESPACE }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Smoke test | $([ "$STATUS" = "success" ] && echo "✅ Passed" || echo "❌ Failed") |" >> $GITHUB_STEP_SUMMARY
+          echo "| Time | $(date -u '+%Y-%m-%d %H:%M UTC') |" >> $GITHUB_STEP_SUMMARY
 ```
 
 ---
@@ -281,5 +215,4 @@ CMD ["node", "server.js"]
 | `{{IMAGE_NAME}}` | `registry.cn-hangzhou.aliyuncs.com/myco/my-app` | 用户提供 |
 | `{{APP_NAME}}` | `my-app` | package.json name |
 | `{{APP_PORT}}` | `3000` | 用户提供或默认 3000 |
-| `{{K8S_NAMESPACE_STAGING}}` | `my-app-staging-backend` | 用户提供（格式：`<project>-staging-<component>`） |
 | `{{K8S_NAMESPACE_PROD}}` | `my-app-prod-backend` | 用户提供（格式：`<project>-prod-<component>`） |

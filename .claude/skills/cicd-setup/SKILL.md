@@ -1,11 +1,13 @@
 ---
 name: cicd-setup
-description: 为项目生成完整的 GitHub Actions CI/CD 工作流配置。生成 3 个 workflow 文件：CI（PR 自动跑测试+lint）、CD Staging（打 Tag v* 自动构建镜像并部署）、CD Prod（手动审批后部署）。支持阿里云 ACR 镜像仓库 + K8s 部署，主要针对 Node.js/Next.js 项目（可扩展到 Python/Go）。同时生成 GitHub Secrets 配置清单和 Dockerfile（如项目缺失）。应在 dev-deploy 完成后、项目正式上线前执行。当用户提到"搭建CI/CD"、"配置GitHub Actions"、"自动部署"、"CICD工作流"、"cicd-setup"、"打Tag部署"、"Staging部署"、"流水线配置"、"持续集成"、"持续部署"时触发。
+description: 为项目生成完整的 GitHub Actions CI/CD 工作流配置。生成 2 个 workflow 文件：CI（PR 自动跑测试+lint）、CD Prod（打 Tag v* 触发，人工审批后部署生产）。本地 staging 测试通过 /dev-deploy 直接部署到本地 k3s，不消耗 GitHub Actions minutes。支持阿里云 ACR 镜像仓库 + K8s 部署，主要针对 Node.js/Next.js 项目（可扩展到 Python/Go）。同时生成 GitHub Secrets 配置清单和 Dockerfile（如项目缺失）。应在 dev-deploy 完成后、项目正式上线前执行。当用户提到"搭建CI/CD"、"配置GitHub Actions"、"自动部署"、"CICD工作流"、"cicd-setup"、"打Tag部署"、"流水线配置"、"持续集成"、"持续部署"时触发。
 ---
 
 # CI/CD Setup
 
-为项目生成完整的 GitHub Actions CI/CD 工作流，实现：本地开发 → PR 自动测试 → 打 Tag 触发 Staging 部署 → 手动审批 Prod 部署。
+为项目生成 GitHub Actions CI/CD 工作流，实现：本地开发 → PR 自动测试 → 打 Tag → 人工审批 → 部署生产。
+
+**设计原则：本地 staging 测试用 `/dev-deploy` 直接部署到本地 k3s，不消耗 GitHub Actions minutes；只有部署生产才走 CI/CD。**
 
 ## 工作流架构
 
@@ -14,17 +16,15 @@ PR / push to main
       │
    [ci.yml]  lint + test（目标 < 5 分钟）
       │
-  merge to main（本地用 dev-deploy 脚本部署到 <project>-<component>）
+  本地测试：/dev-deploy → 本地 k3s（不走 GitHub Actions）
       │
   git tag v1.2.0 && git push origin v1.2.0
       │
-[deploy-staging.yml]  触发：on push tag v*.*.*
-  构建 Docker 镜像 → 推送 ACR → 部署 K8s staging → smoke test
-      │  成功后自动触发（workflow_run）
-[deploy-prod.yml]
-  等待人工在 GitHub Actions 点击 "Review deployments" 审批
+[deploy-prod.yml]  触发：on push tag v*.*.*
+  构建 Docker 镜像 → 推送 ACR
+      │  等待人工在 GitHub Actions 点击 "Review deployments" 审批
       │  审批通过
-  复用 staging 镜像（同一 tag，不重新构建）→ 部署 K8s prod → smoke test
+  部署 K8s prod → smoke test
 ```
 
 ## 输出文件
@@ -33,8 +33,7 @@ PR / push to main
 .github/
 └── workflows/
     ├── ci.yml                  # PR 自动测试
-    ├── deploy-staging.yml      # Tag 触发 Staging 部署
-    └── deploy-prod.yml         # 手动审批 Prod 部署
+    └── deploy-prod.yml         # Tag 触发，人工审批后部署 Prod
 Dockerfile                      # 如项目中不存在则生成
 docs/
 └── cicd-secrets-setup.md       # GitHub Secrets 配置清单
@@ -67,19 +66,19 @@ Node.js 版本：   20
 Build 命令：     npm run build
 ACR Registry：   registry.cn-hangzhou.aliyuncs.com/mycompany
 镜像名称：       registry.cn-hangzhou.aliyuncs.com/mycompany/my-app
-K8s Namespace（staging）：my-app-staging-backend   # <project>-staging-<component>
-K8s Namespace（prod）：   my-app-prod-backend      # <project>-prod-<component>
+K8s Namespace（prod）：my-app-prod-backend   # <project>-prod-<component>
 应用端口：       3000
+Prod URL（smoke test）：https://my-app.example.com
 ```
 
 ## Phase 2：生成 Workflow 文件
 
-读取 `references/workflow-templates.md`，用确认的配置替换变量，生成 3 个文件。
+读取 `references/workflow-templates.md`，用确认的配置替换变量，生成 2 个文件。
 
 **核心设计原则：**
 - `ci.yml`：在每个 PR 和 push to main 时运行，快速失败（lint 先跑，通过才跑 test）
-- `deploy-staging.yml`：只在 `v*.*.*` tag 上触发，用 git tag 作为 Docker 镜像 tag
-- `deploy-prod.yml`：由 `deploy-staging.yml` 成功后通过 `workflow_run` 自动触发；使用 `environment: production`，配合 GitHub Environment Protection Rules 实现人工审批门控；复用 staging 已构建的同一 tag 镜像（不重新构建，保证一致性）
+- `deploy-prod.yml`：只在 `v*.*.*` tag 上触发，构建镜像推 ACR，然后用 `environment: production` 配合 GitHub Environment Protection Rules 实现人工审批门控，审批通过后部署生产
+- 本地 staging 测试用 `/dev-deploy` 直接操作本地 k3s，不需要 GitHub Actions
 
 ## Phase 3：生成 Dockerfile（如缺失）
 
