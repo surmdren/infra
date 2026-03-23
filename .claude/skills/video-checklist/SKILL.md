@@ -19,15 +19,25 @@ references/style-guide.md
 /Users/rick.ren/Library/Mobile Documents/iCloud~md~obsidian/Documents/Notebooks/01-Area/video-maker/templates/style-guide.md
 ```
 
-脚本根目录：
+Repo 根目录：
 ```
-/Users/rick.ren/Library/Mobile Documents/iCloud~md~obsidian/Documents/Notebooks/01-Area/video-maker/scripts/
+/Users/rick.ren/github/dreamai/dreamwiseai-demo-series/
 ```
 
-Checklist 输出目录（与脚本同目录）：
+脚本和 Checklist 放在 `creator-notes/` submodule（私有 repo `creator-notes`），目录结构与 demo-series 一致（年月/期数）：
 ```
-/Users/rick.ren/Library/Mobile Documents/iCloud~md~obsidian/Documents/Notebooks/01-Area/video-maker/scripts/[年月]/[视频编号]-checklist.md
+creator-notes/[年月]/[期数]/script.md      # 输入
+creator-notes/[年月]/[期数]/checklist.md   # 输出
 ```
+
+例如 2026年3月第001期视频：
+```
+/Users/rick.ren/github/dreamai/dreamwiseai-demo-series/creator-notes/202603/001/script.md
+/Users/rick.ren/github/dreamai/dreamwiseai-demo-series/creator-notes/202603/001/checklist.md
+```
+
+> `creator-notes/` 是 git submodule，指向私有 repo `surmdren/creator-notes`。
+> 保存文件后需进入 `creator-notes/` 目录单独 commit & push。
 
 ---
 
@@ -36,11 +46,11 @@ Checklist 输出目录（与脚本同目录）：
 如果用户已指定脚本路径或视频编号，直接使用。
 
 如果没有指定，询问：
-> "请告诉我是哪条视频的脚本？（例如：202603/001-MiniMax-M2.7-Review.md）"
+> "请告诉我是哪条视频？（例如：202603/001）"
 
-确认路径后，**并行读取**以下两个文件：
+确认视频路径后，**并行读取**以下两个文件：
 - 风格指南（上方固定路径）
-- 用户指定的脚本文件
+- `creator-notes/[年月]/[期数]/script.md`（脚本文件）
 
 ---
 
@@ -146,13 +156,17 @@ Checklist 输出目录（与脚本同目录）：
 
 将生成的 checklist 保存为：
 ```
-/Users/rick.ren/Library/Mobile Documents/iCloud~md~obsidian/Documents/Notebooks/01-Area/video-maker/scripts/[年月]/[视频编号]-[视频标题简短版]-checklist.md
+/Users/rick.ren/github/dreamai/dreamwiseai-demo-series/creator-notes/[年月]/[期数]/checklist.md
 ```
 
-文件名规则：
-- 视频编号：与脚本文件编号一致（如 `001`）
-- 视频标题简短版：取脚本标题前3-4个关键词，用连字符连接，全部小写（如 `minimax-m2.7-review`）
-- 示例：`001-minimax-m2.7-review-checklist.md`
+- 如果目录不存在，自动创建
+- 示例：`/Users/rick.ren/github/dreamai/dreamwiseai-demo-series/creator-notes/202603/001/checklist.md`
+
+保存完成后，进入 `creator-notes/` 单独 commit & push：
+```bash
+cd /Users/rick.ren/github/dreamai/dreamwiseai-demo-series/creator-notes
+git add . && git commit -m "feat: add checklist for [年月]/[期数]" && git push
+```
 
 文件头部格式：
 ```markdown

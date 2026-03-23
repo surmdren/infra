@@ -73,30 +73,30 @@ $ARGUMENTS
 
 > **标准部署方式：K8s 自托管**，以下框架均可容器化部署。
 
-| 场景 | 推荐 | 说明 |
-|------|------|------|
-| AI SaaS / 全栈（推荐） | **Next.js 14+** | 前后端一体，SSR/SSG/API Routes |
-| 通用 SPA | **React 18** | 生态最完善，配 Vite |
-| 轻量级 / 中小项目 | **Vue 3 / Nuxt.js** | 学习曲线平缓 |
-| 内容驱动官网 | **Astro** | 静态优先，性能极佳 |
-| 轻量全栈 | **SvelteKit** | 包体积小，适合 Edge 部署 |
-| 跨端移动 | **React Native / Flutter** | Supabase SDK 完整支持 |
+| 场景 | 推荐 | License | 说明 |
+|------|------|---------|------|
+| AI SaaS / 全栈（推荐） | **Next.js 14+** | MIT ✅ | 前后端一体，SSR/SSG/API Routes |
+| 通用 SPA | **React 18** | MIT ✅ | 生态最完善，配 Vite |
+| 轻量级 / 中小项目 | **Vue 3 / Nuxt.js** | MIT ✅ | 学习曲线平缓 |
+| 内容驱动官网 | **Astro** | MIT ✅ | 静态优先，性能极佳 |
+| 轻量全栈 | **SvelteKit** | MIT ✅ | 包体积小，适合 Edge 部署 |
+| 跨端移动 | **React Native / Flutter** | MIT / BSD ✅ | Supabase SDK 完整支持 |
 
 ## 状态管理（非必须）
 
-| 场景 | 推荐 |
-|------|------|
-| 简单状态 | React Context / Vue Reactive |
-| 中等复杂度 | Zustand（React）/ Pinia（Vue）|
-| ❌ 不推荐 | Redux, MobX（除非必须）|
+| 场景 | 推荐 | License |
+|------|------|---------|
+| 简单状态 | React Context / Vue Reactive | MIT ✅ |
+| 中等复杂度 | Zustand（React）/ Pinia（Vue）| MIT ✅ |
+| ❌ 不推荐 | Redux, MobX（除非必须）| MIT ✅ |
 
 ## 样式 / 构建 / 请求
 
-| 类型 | 推荐 |
-|------|------|
-| 样式 | **Tailwind CSS**（快速）/ Ant Design（企业级）|
-| 构建 | **Vite**（通用）/ Next.js 内置 |
-| 请求 | **fetch API**（原生）/ TanStack Query（需缓存）|
+| 类型 | 推荐 | License |
+|------|------|---------|
+| 样式 | **Tailwind CSS** / Ant Design | MIT ✅ / MIT ✅ |
+| 构建 | **Vite** / Next.js 内置 | MIT ✅ |
+| 请求 | **fetch API** / TanStack Query | MIT ✅ |
 
 ## 谨慎引入
 
@@ -114,23 +114,23 @@ $ARGUMENTS
 
 ### 后端框架选型
 
-| 场景 | 推荐 |
-|------|------|
-| 快速开发 | **Node.js + Express/Fastify** |
-| 企业级应用 | **Java 17 + Spring Boot 3** |
-| 高性能 | **Go + Gin** |
-| 数据密集 | **Python + FastAPI** |
+| 场景 | 推荐 | License |
+|------|------|---------|
+| 快速开发 | **Node.js + Express/Fastify** | MIT ✅ |
+| 企业级应用 | **Java 17 + Spring Boot 3** | Apache 2.0 ✅ |
+| 高性能 | **Go + Gin** | MIT ✅ |
+| 数据密集 | **Python + FastAPI** | MIT ✅ |
 
 ## 数据库
 
 > **AI SaaS 标准栈：Supabase**（PostgreSQL + Auth + Storage + Realtime 一体化托管）
 
-| 类型 | 推荐 | 场景 |
-|------|------|------|
-| **K8s 自托管首选** | **PostgreSQL** | 自托管通用首选 |
-| 关系型（轻量） | **MySQL 8** | 简单 CRUD |
-| 文档型 | **MongoDB** | 灵活 Schema |
-| 缓存 | **Redis** | 会话/缓存（K8s 用 Helm 部署）|
+| 类型 | 推荐 | License | 场景 |
+|------|------|---------|------|
+| **K8s 自托管首选** | **PostgreSQL** | PostgreSQL License ✅ | 自托管通用首选 |
+| 关系型（轻量） | **MySQL 8** | GPL 2.0 ⚠️ | 简单 CRUD（商用需注意：社区版 GPL，商用考虑 Percona）|
+| 文档型 | **MongoDB** | SSPL ⚠️ | 灵活 Schema（商用需确认：SSPL 要求云服务商开源，自用 SaaS 无影响）|
+| 缓存 | **Redis** | BSD ✅ | 会话/缓存（K8s 用 Helm 部署）|
 
 ## Supabase 接入
 
@@ -243,6 +243,14 @@ NEXT_PUBLIC_APP_URL=https://your-domain.com
 3. 核心表结构（字段、类型、约束、索引）
 4. 数据迁移策略（Prisma Migrate / Flyway）
 5. 备份策略（全量/增量/WAL）
+
+## 完成后建议
+
+技术方案生成完成后，建议立即运行：
+- `/compliance-check` — 基于本方案的技术选型，生成 PII 加密方案、数据保留期、用户数据删除接口设计，在开发前把合规要求落实到代码设计中
+- `/copyright-scanner` — 如引入了非 MIT/Apache 协议的依赖（如 MongoDB SSPL、MySQL GPL），确认商用授权
+
+---
 
 ## Examples
 
