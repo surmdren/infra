@@ -34,6 +34,7 @@ logs/
 secrets.env
 k8s/supabase/secrets.env
 **/.secrets.env
+runner-kubeconfig.yaml
 
 # Agent 私人记忆（含个人信息，不提交）
 MEMORY.md
