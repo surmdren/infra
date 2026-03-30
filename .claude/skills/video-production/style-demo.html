@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DreamWise AI — 视觉操作系统</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono&family=Caveat:wght@500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --cyan: #00d4ff;
+      --magenta: #ff00ff;
+      --green: #00ff88;
+      --red: #ff4444;
+      --bg: #0f0f0f;
+      --bg2: #1a1a2e;
+    }
+    body { font-family: 'Inter', sans-serif; background: var(--bg); color: #fff; }
+    .glow-cyan { box-shadow: 0 0 24px rgba(0,212,255,0.4); }
+    .glow-magenta { box-shadow: 0 0 24px rgba(255,0,255,0.35); }
+    .glow-green { box-shadow: 0 0 24px rgba(0,255,136,0.35); }
+    .glow-red { box-shadow: 0 0 20px rgba(255,68,68,0.35); }
+    .text-glow { text-shadow: 0 0 20px rgba(0,212,255,0.8), 0 0 40px rgba(0,212,255,0.3); }
+    .chip { font-size:10px; letter-spacing:.1em; text-transform:uppercase; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.1); border-radius:999px; padding:3px 10px; color:#888; }
+    .node-cyan { border:2px solid var(--cyan); box-shadow:0 0 12px rgba(0,212,255,.3); }
+    .node-magenta { border:2px solid var(--magenta); box-shadow:0 0 12px rgba(255,0,255,.25); }
+    .node-white { border:2px solid rgba(255,255,255,.35); }
+    .pip { width:80px;height:80px;border-radius:50%;border:3px solid var(--cyan);box-shadow:0 0 16px rgba(0,212,255,.5);background:var(--bg2);display:flex;align-items:center;justify-content:center; }
+    .lower-third { border-left:3px solid var(--cyan);background:rgba(0,0,0,.75);backdrop-filter:blur(8px); }
+    .divider { border:none;border-top:1px solid rgba(255,255,255,.06);margin:0; }
+    .card { background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:16px; }
+    .sec-label { font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#555;margin-bottom:6px; }
+    .arrow { color:#444;font-size:20px; }
+    /* Nav */
+    .nav-dot { width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.15);cursor:pointer;transition:all .2s; }
+    .nav-dot.active { background:var(--cyan);box-shadow:0 0 8px rgba(0,212,255,.6); }
+  </style>
+</head>
+<body>
+
+  <!-- TOP NAV -->
+  <nav class="sticky top-0 z-50 border-b border-white/5 px-6 py-3 flex items-center justify-between" style="background:rgba(15,15,15,.95);backdrop-filter:blur(12px)">
+    <div class="flex items-center gap-3">
+      <span style="color:var(--cyan);font-weight:700;font-family:'Poppins',sans-serif;">DreamWise AI</span>
+      <span class="chip">视觉操作系统 v2.0</span>
+    </div>
+    <div class="hidden md:flex items-center gap-4 text-xs text-gray-500">
+      <a href="#brand" class="hover:text-white transition-colors">品牌</a>
+      <a href="#color" class="hover:text-white transition-colors">色彩</a>
+      <a href="#type" class="hover:text-white transition-colors">字体</a>
+      <a href="#templates" class="hover:text-white transition-colors">视觉模板</a>
+      <a href="#thumb" class="hover:text-white transition-colors">封面</a>
+      <a href="#arch" class="hover:text-white transition-colors">架构图</a>
+      <a href="#pip" class="hover:text-white transition-colors">PiP</a>
+      <a href="#pacing" class="hover:text-white transition-colors">节奏</a>
+      <a href="#checklist" class="hover:text-white transition-colors">Checklist</a>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <div class="px-8 py-16 text-center" style="background:linear-gradient(180deg,rgba(0,212,255,.04) 0%,transparent 100%)">
+    <div class="chip inline-block mb-4">Visual Operating System</div>
+    <h1 style="font-family:'Poppins',sans-serif;font-weight:800;font-size:clamp(32px,5vw,56px);">
+      视觉操作系统
+    </h1>
+    <p class="text-gray-500 mt-3 text-lg">DreamWise AI · YouTube 频道制作规范</p>
+    <p class="mt-2 text-sm" style="color:var(--cyan);font-style:italic;">We Help Companies Become Agent-Driven.</p>
+  </div>
+
+  <div class="max-w-6xl mx-auto px-6 pb-20 space-y-20">
+
+    <!-- ① 品牌定位 -->
+    <section id="brand">
+      <div class="sec-label">01 / 品牌</div>
+      <h2 style="font-family:'Poppins',sans-serif;font-size:28px;font-weight:700;margin-bottom:24px;">Brand Positioning</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Company -->
+        <div class="card p-6">
+          <div class="chip mb-3">公司层面</div>
+          <div style="font-family:'Poppins',sans-serif;font-size:22px;font-weight:700;color:var(--cyan);" class="mb-2">We Help Companies<br>Become Agent-Driven.</div>
+          <p class="text-gray-500 text-sm">面向企业决策者、技术负责人</p>
+        </div>
+        <!-- YouTube -->
+        <div class="card p-6">
+          <div class="chip mb-3">YouTube 频道</div>
+          <div class="flex gap-2 mb-3">
+            <span style="background:rgba(0,212,255,.1);color:var(--cyan);border:1px solid rgba(0,212,255,.3);border-radius:999px;padding:3px 12px;font-size:12px;font-weight:600;">教程型</span>
+            <span style="background:rgba(0,212,255,.1);color:var(--cyan);border:1px solid rgba(0,212,255,.3);border-radius:999px;padding:3px 12px;font-size:12px;font-weight:600;">趋势型</span>
+          </div>
+          <p class="text-white font-medium mb-1">手把手教你用最新 AI 技术</p>
+          <p class="text-white font-medium mb-3">同时帮你看懂行业在发生什么</p>
+          <p class="text-gray-500 text-sm">目标认知："他教 AI 怎么用，也帮我搞懂 AI 在往哪走"</p>
+        </div>
+      </div>
+      <!-- Slogans -->
+      <div class="card p-6 mt-4">
+        <div class="chip mb-4">标志句式 — 每条视频至少 1 个，重复 3 次，Cyan 高亮，说完停顿 1 秒</div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div class="flex items-center gap-3 p-3 rounded-lg" style="background:rgba(0,212,255,.05);border:1px solid rgba(0,212,255,.15);">
+            <i data-lucide="zap" class="w-4 h-4 shrink-0" style="color:var(--cyan)"></i>
+            <div>
+              <div style="font-family:'Poppins',sans-serif;font-weight:700;color:var(--cyan)">BECOME AGENT-DRIVEN</div>
+              <div class="text-xs text-gray-500">核心主张，强调企业/个人转型</div>
+            </div>
+          </div>
+          <div class="flex items-center gap-3 p-3 rounded-lg" style="background:rgba(0,212,255,.05);border:1px solid rgba(0,212,255,.15);">
+            <i data-lucide="cpu" class="w-4 h-4 shrink-0" style="color:var(--cyan)"></i>
+            <div>
+              <div style="font-family:'Poppins',sans-serif;font-weight:700;color:var(--cyan)">THIS IS HOW AGENTS WORK</div>
+              <div class="text-xs text-gray-500">解释 Agent 工作流时</div>
+            </div>
+          </div>
+          <div class="flex items-center gap-3 p-3 rounded-lg" style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);">
+            <i data-lucide="brain" class="w-4 h-4 shrink-0 text-gray-400"></i>
+            <div>
+              <div style="font-family:'Poppins',sans-serif;font-weight:700;color:#ccc">YOU ARE THE MEMORY</div>
+              <div class="text-xs text-gray-500">讲 Agent 记忆/持久化</div>
+            </div>
+          </div>
+          <div class="flex items-center gap-3 p-3 rounded-lg" style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);">
+            <i data-lucide="layers" class="w-4 h-4 shrink-0 text-gray-400"></i>
+            <div>
+              <div style="font-family:'Poppins',sans-serif;font-weight:700;color:#ccc">THIS CHANGES THE ARCHITECTURE</div>
+              <div class="text-xs text-gray-500">讲颠覆性工具或范式转变</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <hr class="divider">
+
+    <!-- ② 色彩系统 -->
+    <section id="color">
+      <div class="sec-label">02 / 色彩</div>
+      <h2 style="font-family:'Poppins',sans-serif;font-size:28px;font-weight:700;margin-bottom:24px;">Color System</h2>
+
+      <!-- Semantic colors - PRIMARY -->
+      <div class="mb-4 p-4 rounded-xl border border-yellow-500/20" style="background:rgba(255,200,0,.04)">
+        <div class="text-xs font-semibold text-yellow-400 mb-3 flex items-center gap-2"><i data-lucide="alert-triangle" class="w-3 h-3"></i> 语义颜色规则 — 颜色必须表达含义，不只是装饰</div>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-lg shrink-0 glow-red flex items-center justify-center" style="background:#ff4444;"><i data-lucide="x" class="w-4 h-4 text-white"></i></div>
+            <div><div class="text-sm font-semibold text-red-400">红 #ff4444</div><div class="text-xs text-gray-500">问题 / Before</div></div>
+          </div>
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-lg shrink-0 glow-cyan flex items-center justify-center" style="background:var(--cyan);"><i data-lucide="loader" class="w-4 h-4 text-black"></i></div>
+            <div><div class="text-sm font-semibold text-cyan-400">Cyan #00d4ff</div><div class="text-xs text-gray-500">执行中 / 品牌色</div></div>
+          </div>
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-lg shrink-0 glow-green flex items-center justify-center" style="background:var(--green);"><i data-lucide="check" class="w-4 h-4 text-black"></i></div>
+            <div><div class="text-sm font-semibold text-green-400">绿 #00ff88</div><div class="text-xs text-gray-500">成功 / After</div></div>
+          </div>
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-lg shrink-0 glow-magenta flex items-center justify-center" style="background:var(--magenta);"><i data-lucide="arrow-right" class="w-4 h-4 text-black"></i></div>
+            <div><div class="text-sm font-semibold text-fuchsia-400">Magenta #ff00ff</div><div class="text-xs text-gray-500">输出节点（视频内）</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Full palette -->
+      <div class="grid grid-cols-3 md:grid-cols-6 gap-3 mb-6">
+        <div><div class="h-16 rounded-xl mb-2" style="background:#0f0f0f;border:1px solid #333;"></div><div class="text-xs font-mono text-gray-500">#0f0f0f<br><span class="text-gray-600">背景主</span></div></div>
+        <div><div class="h-16 rounded-xl mb-2" style="background:#1a1a2e;border:1px solid #333;"></div><div class="text-xs font-mono text-gray-500">#1a1a2e<br><span class="text-gray-600">背景次</span></div></div>
+        <div><div class="h-16 rounded-xl mb-2 glow-cyan" style="background:var(--cyan);"></div><div class="text-xs font-mono text-cyan-400">#00d4ff<br><span class="text-gray-600">主强调</span></div></div>
+        <div><div class="h-16 rounded-xl mb-2" style="background:#ffffff;"></div><div class="text-xs font-mono text-gray-400">#ffffff<br><span class="text-gray-600">正文</span></div></div>
+        <div><div class="h-16 rounded-xl mb-2 glow-green" style="background:var(--green);"></div><div class="text-xs font-mono text-green-400">#00ff88<br><span class="text-gray-600">成功</span></div></div>
+        <div><div class="h-16 rounded-xl mb-2 glow-red" style="background:var(--red);"></div><div class="text-xs font-mono text-red-400">#ff4444<br><span class="text-gray-600">错误</span></div></div>
+      </div>
+
+      <!-- 70/20/10 -->
+      <div class="card p-5">
+        <div class="text-sm font-semibold mb-3">色彩比例法则 — 70 / 20 / 10</div>
+        <div class="flex h-8 rounded-full overflow-hidden mb-2">
+          <div class="flex items-center justify-center text-xs text-gray-500 border border-gray-800" style="width:70%;background:#111;">70% 背景黑</div>
+          <div class="flex items-center justify-center text-xs text-black font-medium" style="width:20%;background:#fff;">20%</div>
+          <div class="flex items-center justify-center text-xs text-black font-bold" style="width:10%;background:linear-gradient(90deg,var(--cyan),var(--magenta));">10%</div>
+        </div>
+        <div class="flex flex-wrap gap-4 text-xs text-gray-500">
+          <span>✅ 封面只用 Cyan，不用 Magenta</span>
+          <span>✅ Magenta 仅用于视频内架构图输出节点</span>
+          <span>❌ 两色不同时大面积出现</span>
+        </div>
+      </div>
+    </section>
+
+    <hr class="divider">
+
+    <!-- ③ 字体 -->
+    <section id="type">
+      <div class="sec-label">03 / 字体</div>
+      <h2 style="font-family:'Poppins',sans-serif;font-size:28px;font-weight:700;margin-bottom:24px;">Typography</h2>
+      <div class="space-y-5">
+        <div class="card p-5 flex items-baseline gap-6">
+          <div class="w-36 shrink-0"><div class="text-xs text-gray-600">封面主标题</div><div class="text-xs font-mono text-gray-500 mt-1">Poppins Bold<br>80–100px</div></div>
+          <div style="font-family:'Poppins',sans-serif;font-weight:800;font-size:40px;color:#fff;text-shadow:0 0 30px rgba(0,212,255,.6),0 0 2px var(--cyan);">Better Than Claude?</div>
+        </div>
+        <div class="card p-5 flex items-baseline gap-6">
+          <div class="w-36 shrink-0"><div class="text-xs text-gray-600">视频字幕</div><div class="text-xs font-mono text-gray-500 mt-1">Inter Regular<br>36–42px</div></div>
+          <div class="text-2xl" style="text-shadow:1px 1px 3px #000,-1px -1px 3px #000;">I spent <span style="color:var(--cyan);font-weight:700;">$3,000</span> testing this AI</div>
+        </div>
+        <div class="card p-5 flex items-baseline gap-6">
+          <div class="w-36 shrink-0"><div class="text-xs text-gray-600">手写风标题</div><div class="text-xs font-mono text-gray-500 mt-1">Caveat Bold</div></div>
+          <div style="font-family:'Caveat',cursive;font-weight:700;font-size:36px;color:var(--cyan);">1. Create Source</div>
+        </div>
+        <div class="card p-5 flex items-baseline gap-6">
+          <div class="w-36 shrink-0"><div class="text-xs text-gray-600">代码展示</div><div class="text-xs font-mono text-gray-500 mt-1">JetBrains Mono<br>24–28px</div></div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:16px;color:var(--cyan);background:#111;padding:10px 14px;border-radius:8px;">export MINIMAX_API_KEY=<span style="color:var(--green)">"sk-xxx..."</span></div>
+        </div>
+      </div>
+      <div class="mt-3 p-3 rounded-lg border border-yellow-500/20 text-xs text-yellow-400" style="background:rgba(255,200,0,.04)">⚠️ 同一画面最多 2 种字体，不超过 3 种字重</div>
+    </section>
+
+    <hr class="divider">
+
+    <!-- ④ 三种视觉模板 -->
+    <section id="templates">
+      <div class="sec-label">04 / 视觉模板</div>
+      <h2 style="font-family:'Poppins',sans-serif;font-size:28px;font-weight:700;margin-bottom:8px;">Visual Templates</h2>
+      <p class="text-gray-500 text-sm mb-8">每屏只表达一个核心信息。三种标准结构，覆盖所有场景。</p>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+
+        <!-- Template A: Contrast -->
+        <div class="card p-5">
+          <div class="chip mb-4">模板 A — 对比型</div>
+          <div class="flex gap-2 h-28 mb-4">
+            <div class="flex-1 rounded-xl flex flex-col items-center justify-center gap-1 border" style="background:rgba(255,68,68,.08);border-color:rgba(255,68,68,.3);">
+              <i data-lucide="x-circle" class="w-5 h-5" style="color:var(--red)"></i>
+              <div class="text-xs font-bold" style="color:var(--red)">BEFORE</div>
+              <div class="text-xs text-gray-500">手动 3 小时</div>
+            </div>
+            <div class="flex items-center text-gray-600 text-lg">→</div>
+            <div class="flex-1 rounded-xl flex flex-col items-center justify-center gap-1 border" style="background:rgba(0,255,136,.08);border-color:rgba(0,255,136,.3);">
+              <i data-lucide="check-circle" class="w-5 h-5" style="color:var(--green)"></i>
+              <div class="text-xs font-bold" style="color:var(--green)">AFTER</div>
+              <div class="text-xs text-gray-500">AI 2 分钟</div>
+            </div>
+          </div>
+          <p class="text-xs text-gray-500">适用：MiniMax vs Claude、手动 vs 自动、成本对比</p>
+        </div>
+
+        <!-- Template B: Single Burst -->
+        <div class="card p-5">
+          <div class="chip mb-4">模板 B — 单点爆破型</div>
+          <div class="h-28 rounded-xl flex flex-col items-center justify-center mb-4" style="background:rgba(0,212,255,.05);border:1px solid rgba(0,212,255,.15);">
+            <div style="font-family:'Poppins',sans-serif;font-weight:800;font-size:36px;color:var(--cyan);" class="text-glow">8.5</div>
+            <div class="text-xs text-gray-400">/10 评分</div>
+          </div>
+          <p class="text-xs text-gray-500">适用：评分、成本数字（$0.08）、速度数据（45s）</p>
+        </div>
+
+        <!-- Template C: Flow -->
+        <div class="card p-5">
+          <div class="chip mb-4">模板 C — 流程型</div>
+          <div class="h-28 flex items-center justify-center gap-2 mb-4">
+            <div class="flex flex-col items-center gap-1">
+              <div class="w-10 h-10 rounded-lg flex items-center justify-center" style="background:rgba(255,68,68,.15);border:1px solid rgba(255,68,68,.4);"><i data-lucide="alert-circle" class="w-4 h-4" style="color:var(--red)"></i></div>
+              <div class="text-xs" style="color:var(--red)">ERROR</div>
+            </div>
+            <div class="text-gray-600">→</div>
+            <div class="flex flex-col items-center gap-1">
+              <div class="w-10 h-10 rounded-lg flex items-center justify-center" style="background:rgba(0,212,255,.1);border:1px solid rgba(0,212,255,.3);"><i data-lucide="wrench" class="w-4 h-4" style="color:var(--cyan)"></i></div>
+              <div class="text-xs" style="color:var(--cyan)">FIX</div>
+            </div>
+            <div class="text-gray-600">→</div>
+            <div class="flex flex-col items-center gap-1">
+              <div class="w-10 h-10 rounded-lg flex items-center justify-center" style="background:rgba(0,255,136,.1);border:1px solid rgba(0,255,136,.3);"><i data-lucide="trending-up" class="w-4 h-4" style="color:var(--green)"></i></div>
+              <div class="text-xs" style="color:var(--green)">EVOLVE</div>
+            </div>
+          </div>
+          <p class="text-xs text-gray-500">适用：Agent 工作流、技术教程、问题解决流程</p>
+        </div>
+      </div>
+    </section>
+
+    <hr class="divider">
+
+    <!-- ⑤ 封面 -->
+    <section id="thumb">
+      <div class="sec-label">05 / 封面</div>
+      <h2 style="font-family:'Poppins',sans-serif;font-size:28px;font-weight:700;margin-bottom:24px;">Thumbnail Design</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <div class="text-xs text-green-400 mb-2 flex items-center gap-1"><i data-lucide="check-circle" class="w-3 h-3"></i> 正确：单 Cyan + 极简</div>
+          <div class="rounded-xl overflow-hidden p-6 flex items-center gap-5" style="background:#0f0f0f;border:1px solid #222;aspect-ratio:16/9;">
+            <div class="w-28 h-32 rounded-xl bg-gray-800 border border-gray-700 flex items-center justify-center shrink-0"><i data-lucide="user" class="w-10 h-10 text-gray-600"></i></div>
+            <div>
+              <div style="font-family:'Poppins',sans-serif;font-weight:800;font-size:20px;line-height:1.2;color:#fff;text-shadow:0 0 20px rgba(0,212,255,.5);">Better Than<br><span style="color:var(--cyan);">Claude?</span></div>
+              <div class="mt-2 text-xs text-gray-600">DreamWise AI</div>
+            </div>
+          </div>
+          <div class="mt-2 text-xs text-gray-600">黑底 · 白字 · Cyan 高亮 · 真人 · 频道名 · ≤4个元素</div>
+        </div>
+        <div>
+          <div class="text-xs text-red-400 mb-2 flex items-center gap-1"><i data-lucide="x-circle" class="w-3 h-3"></i> 错误：双色 + 堆料</div>
+          <div class="rounded-xl overflow-hidden p-4 flex items-center gap-4" style="background:linear-gradient(135deg,#0f0f0f,#1a0a2e);border:1px solid #333;aspect-ratio:16/9;">
+            <div class="w-20 h-28 rounded-xl bg-gray-800 flex items-center justify-center shrink-0"><i data-lucide="user" class="w-8 h-8 text-gray-600"></i></div>
+            <div class="space-y-1">
+              <div style="font-size:9px;color:var(--magenta);font-weight:700;">⚡ EXCLUSIVE</div>
+              <div style="font-size:13px;font-weight:800;color:var(--cyan);">Better Than Claude?</div>
+              <div style="font-size:8px;color:var(--magenta);">MINIMAX M2.7 REVIEW 2026</div>
+              <div style="font-size:7px;color:#888;">AI TOOLS · AUTOMATION · AGENTS</div>
+              <div class="flex gap-1"><span style="background:var(--magenta);color:#000;font-size:6px;padding:1px 4px;border-radius:3px;">NEW</span><span style="background:var(--cyan);color:#000;font-size:6px;padding:1px 4px;border-radius:3px;">HOT</span></div>
+            </div>
+          </div>
+          <div class="mt-2 text-xs text-gray-600 line-through opacity-40">Magenta+Cyan同时出现，元素超5个，视觉混乱</div>
+        </div>
+      </div>
+      <div class="card p-4 mt-4 text-xs text-gray-400">
+        📊 <strong class="text-white">数据依据</strong>：蓝色系+黑底在科技/教育类 CTR 高于均值 25%；对比度 4.5:1+ 移动端 CTR 提升 31%（YouTube Mobile Guide, 2026）
+      </div>
+    </section>
+
+    <hr class="divider">
+
+    <!-- ⑥ 架构图 -->
+    <section id="arch">
+      <div class="sec-label">06 / 架构图</div>
+      <h2 style="font-family:'Poppins',sans-serif;font-size:28px;font-weight:700;margin-bottom:24px;">Architecture Nodes</h2>
+      <div class="p-8 rounded-2xl" style="background:var(--bg2);">
+        <div class="flex items-center justify-center gap-4 flex-wrap">
+          <div class="node-cyan rounded-xl p-4 text-center min-w-28 bg-cyan-500/5">
+            <i data-lucide="message-square" class="w-6 h-6 mx-auto mb-2" style="color:var(--cyan)"></i>
+            <div class="text-xs font-semibold" style="color:var(--cyan)">输入节点</div>
+            <div class="text-xs text-gray-500 mt-1">Cyan</div>
+          </div>
+          <div class="arrow">→</div>
+          <div class="node-white rounded-xl p-4 text-center min-w-28 bg-white/3">
+            <i data-lucide="cpu" class="w-6 h-6 mx-auto mb-2 text-white"></i>
+            <div class="text-xs font-semibold text-white">处理节点</div>
+            <div class="text-xs text-gray-500 mt-1">White</div>
+          </div>
+          <div class="arrow">→</div>
+          <div class="node-magenta rounded-xl p-4 text-center min-w-28 bg-fuchsia-500/5">
+            <i data-lucide="file-spreadsheet" class="w-6 h-6 mx-auto mb-2" style="color:var(--magenta)"></i>
+            <div class="text-xs font-semibold" style="color:var(--magenta)">输出节点</div>
+            <div class="text-xs text-gray-500 mt-1">Magenta</div>
+          </div>
+        </div>
+        <div class="flex justify-center gap-6 mt-5 text-xs text-gray-500">
+          <span style="color:var(--green)">● 成功路径</span>
+          <span style="color:var(--red)">● 错误路径</span>
+          <span>— 连接线：白/浅灰</span>
+        </div>
+      </div>
+    </section>
+
+    <hr class="divider">
+
+    <!-- ⑦ PiP & Lower Third -->
+    <section id="pip">
+      <div class="sec-label">07 / 画中画 & Lower Third</div>
+      <h2 style="font-family:'Poppins',sans-serif;font-size:28px;font-weight:700;margin-bottom:24px;">PiP & Lower Third</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <div class="text-sm text-gray-400 mb-3">画中画 — 右下角，圆形，Cyan 边框，20–25% 宽</div>
+          <div class="relative rounded-xl overflow-hidden" style="background:var(--bg2);aspect-ratio:16/9;border:1px solid #333;">
+            <div class="absolute inset-0 flex items-center justify-center"><i data-lucide="monitor" class="w-14 h-14 text-gray-700"></i></div>
+            <div class="absolute bottom-3 right-3"><div class="pip"><i data-lucide="user" class="w-8 h-8 text-gray-500"></i></div></div>
+            <div class="absolute" style="inset:5%;border:1px dashed rgba(0,212,255,.12);border-radius:4px;"></div>
+            <div class="absolute text-xs" style="top:6%;left:50%;transform:translateX(-50%);color:rgba(0,212,255,.35)">安全区域</div>
+          </div>
+        </div>
+        <div>
+          <div class="text-sm text-gray-400 mb-3">Lower Third — 左侧 Cyan 竖线，距底 80px</div>
+          <div class="relative rounded-xl overflow-hidden" style="background:var(--bg2);aspect-ratio:16/9;border:1px solid #333;">
+            <div class="absolute inset-0 flex items-center justify-center"><i data-lucide="monitor" class="w-14 h-14 text-gray-700"></i></div>
+            <div class="absolute bottom-5 left-5">
+              <div class="lower-third px-4 py-2 rounded-r-lg">
+                <div class="text-sm font-bold text-white">MiniMax M2.7</div>
+                <div class="text-xs" style="color:#ccc">platform.minimaxi.com · $1.10/1M tokens</div>
+              </div>
+            </div>
+          </div>
+          <div class="mt-2 text-xs text-gray-500">滑入 0.3s · 淡出 0.2s</div>
+        </div>
+      </div>
+    </section>
+
+    <hr class="divider">
+
+    <!-- ⑧ 节奏系统 -->
+    <section id="pacing">
+      <div class="sec-label">08 / 节奏</div>
+      <h2 style="font-family:'Poppins',sans-serif;font-size:28px;font-weight:700;margin-bottom:24px;">Pacing System</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Pacing curve -->
+        <div class="card p-6">
+          <div class="text-sm font-semibold mb-4">整体节奏公式</div>
+          <div class="flex items-end gap-2 h-20 mb-3">
+            <div class="flex flex-col items-center gap-1 flex-1">
+              <div class="w-full rounded-t-lg" style="background:rgba(0,212,255,.3);height:40px;"></div>
+              <div class="text-xs text-gray-500">Hook<br>慢</div>
+            </div>
+            <div class="flex flex-col items-center gap-1 flex-1">
+              <div class="w-full rounded-t-lg" style="background:rgba(0,212,255,.7);height:70px;"></div>
+              <div class="text-xs" style="color:var(--cyan)">核心<br>快</div>
+            </div>
+            <div class="flex flex-col items-center gap-1 flex-1">
+              <div class="w-full rounded-t-lg" style="background:rgba(0,212,255,.3);height:35px;"></div>
+              <div class="text-xs text-gray-500">收尾<br>慢</div>
+            </div>
+          </div>
+          <div class="text-xs text-gray-500">慢建立悬念 → 快传递信息 → 慢让信息沉淀</div>
+        </div>
+        <!-- Pause rules -->
+        <div class="card p-6">
+          <div class="text-sm font-semibold mb-4">关键停顿规则</div>
+          <div class="space-y-3">
+            <div class="flex items-center gap-3 p-3 rounded-lg" style="background:rgba(255,68,68,.06);border:1px solid rgba(255,68,68,.2);">
+              <div class="text-2xl font-bold" style="color:var(--red);font-family:'Poppins',sans-serif;">0.5s</div>
+              <div><div class="text-sm text-white">反转 / 爆点之前</div><div class="text-xs text-gray-500">给观众"等等，什么？"的空间</div></div>
+            </div>
+            <div class="flex items-center gap-3 p-3 rounded-lg" style="background:rgba(0,212,255,.06);border:1px solid rgba(0,212,255,.2);">
+              <div class="text-2xl font-bold" style="color:var(--cyan);font-family:'Poppins',sans-serif;">1s</div>
+              <div><div class="text-sm text-white">金句说完之后</div><div class="text-xs text-gray-500">让句子在脑子里回响</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <hr class="divider">
+
+    <!-- ⑨ Checklist -->
+    <section id="checklist">
+      <div class="sec-label">09 / Checklist</div>
+      <h2 style="font-family:'Poppins',sans-serif;font-size:28px;font-weight:700;margin-bottom:24px;">Production Checklist</h2>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="card p-5">
+          <div class="flex items-center gap-2 mb-4"><i data-lucide="file-text" class="w-4 h-4" style="color:var(--cyan)"></i><span class="text-sm font-semibold">内容层</span></div>
+          <div class="space-y-2 text-sm text-gray-400">
+            <div class="flex items-start gap-2"><span style="color:var(--cyan)">□</span> 有反转（Before vs After）</div>
+            <div class="flex items-start gap-2"><span style="color:var(--cyan)">□</span> 有量化对比（数字）</div>
+            <div class="flex items-start gap-2"><span style="color:var(--cyan)">□</span> 有金句，重复 3 次</div>
+            <div class="flex items-start gap-2"><span style="color:var(--cyan)">□</span> 核心差异只有 1 个</div>
+          </div>
+        </div>
+        <div class="card p-5">
+          <div class="flex items-center gap-2 mb-4"><i data-lucide="eye" class="w-4 h-4" style="color:var(--cyan)"></i><span class="text-sm font-semibold">视觉层</span></div>
+          <div class="space-y-2 text-sm text-gray-400">
+            <div class="flex items-start gap-2"><span style="color:var(--cyan)">□</span> 语义颜色使用正确</div>
+            <div class="flex items-start gap-2"><span style="color:var(--cyan)">□</span> 有对比结构画面</div>
+            <div class="flex items-start gap-2"><span style="color:var(--cyan)">□</span> 单屏单信息</div>
+            <div class="flex items-start gap-2"><span style="color:var(--cyan)">□</span> 封面只用 Cyan</div>
+          </div>
+        </div>
+        <div class="card p-5">
+          <div class="flex items-center gap-2 mb-4"><i data-lucide="activity" class="w-4 h-4" style="color:var(--cyan)"></i><span class="text-sm font-semibold">节奏层</span></div>
+          <div class="space-y-2 text-sm text-gray-400">
+            <div class="flex items-start gap-2"><span style="color:var(--cyan)">□</span> 反转前 0.5s 停顿</div>
+            <div class="flex items-start gap-2"><span style="color:var(--cyan)">□</span> 金句后 1s 停顿</div>
+            <div class="flex items-start gap-2"><span style="color:var(--cyan)">□</span> 整体慢→快→慢</div>
+            <div class="flex items-start gap-2"><span style="color:var(--cyan)">□</span> 1.5x 检查已完成</div>
+          </div>
+        </div>
+      </div>
+      <!-- Brand checklist -->
+      <div class="card p-5 mt-4">
+        <div class="flex items-center gap-2 mb-4"><i data-lucide="star" class="w-4 h-4" style="color:var(--cyan)"></i><span class="text-sm font-semibold">品牌层（DreamWise AI 专属）</span></div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-2 text-sm text-gray-400">
+          <div class="flex items-start gap-2"><span style="color:var(--cyan)">□</span> 有至少 1 个标志句式，重复 3 次</div>
+          <div class="flex items-start gap-2"><span style="color:var(--cyan)">□</span> 体现教程或趋势叙事角度</div>
+          <div class="flex items-start gap-2"><span style="color:var(--cyan)">□</span> 有量化数据（时间/成本/数字）</div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- Footer -->
+  <div class="border-t border-white/5 px-8 py-6 text-center text-xs text-gray-600">
+    DreamWise AI · Visual Operating System v2.0 · 2026-03-24 · 数据驱动，不拍脑袋
+  </div>
+
+  <script>lucide.createIcons();</script>
+</body>
+</html>
