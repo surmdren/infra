@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<!--
+  LinkedIn Sketchnote Visual — 1080×1080px Template
+  Style: Patrick Hand + Caveat fonts, paper background, highlighted keywords
+
+  EXPORT COMMAND:
+    /Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome \
+      --headless --screenshot=/tmp/linkedin-visual-full.png \
+      --window-size=1080,1167 \
+      http://localhost:8899/sketchnote-visual.html
+
+    python3 -c "
+    from PIL import Image
+    Image.open('/tmp/linkedin-visual-full.png').crop((0,0,1080,1080)).save('linkedin-visual.png')
+    "
+
+  NOTE: Must use --window-size=1080,1167 (not 1080,1080).
+  Chrome --headless reserves ~87px for hidden UI, giving only 993px viewport.
+  The extra 87px is cropped out in the Python step.
+
+  LAYOUT (absolute positioning — do NOT use flexbox for section heights):
+    canvas: 1080×1080, padding 30px sides/top/bottom
+    inner width: 984px (1080 - 48*2)
+
+    section tops (left:48, right:48):
+    title      top:30   h:90   → bottom:120
+    vs-row     top:128  h:240  → bottom:368
+    analogy    top:376  h:190  → bottom:566
+    tags       top:574  h:85   → bottom:659
+    conclusion top:667  h:383  → bottom:1050
+    body bottom padding:        1050→1080
+
+  SIGNATURE: use position:absolute inside conclusion, NOT flex spacer.
+  Flex spacer can push signature outside overflow:hidden bounds.
+
+  FILL IN: Replace all [PLACEHOLDER] values below.
+-->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Patrick+Hand&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    width: 1080px;
+    height: 1080px;
+    background: #faf6f0;
+    font-family: 'Patrick Hand', cursive;
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* Lined paper texture */
+  body::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: repeating-linear-gradient(
+      transparent, transparent 39px, #e8e0d4 39px, #e8e0d4 40px
+    );
+    opacity: 0.35;
+    pointer-events: none;
+  }
+
+  /* ── TITLE ───────────────────────────────── */
+  .title-banner {
+    position: absolute;
+    top: 30px; left: 48px; right: 48px; height: 90px;
+    border: 3px solid #1a1a1a;
+    border-radius: 14px;
+    background: #fff;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  .title-banner h1 {
+    font-family: 'Caveat', cursive;
+    font-size: 46px;
+    font-weight: 700;
+    color: #1a1a1a;
+    line-height: 1.0;
+  }
+  .title-banner .sub {
+    font-size: 14px;
+    color: #555;
+    margin-top: 2px;
+  }
+  .title-banner .handle {
+    position: absolute;
+    bottom: 7px; right: 14px;
+    font-family: 'Patrick Hand', cursive;
+    font-size: 13px;
+    color: #aaa;
+  }
+  .star {
+    color: #f4b942;
+    font-size: 22px;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+
+  /* ── VS ROW ──────────────────────────────── */
+  .vs-row {
+    position: absolute;
+    top: 128px; left: 48px; right: 48px; height: 240px;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 14px;
+    align-items: stretch;
+  }
+  .box {
+    border: 2.5px solid #1a1a1a;
+    border-radius: 12px;
+    padding: 12px 16px;
+    background: #fff;
+    overflow: hidden;
+  }
+  .box.good { background: #f0fbff; border-color: #2a9d8f; border-width: 3px; }
+  .box-label {
+    font-family: 'Caveat', cursive;
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+  .box.bad .box-label { color: #c0392b; }
+  .box.good .box-label { color: #2a9d8f; }
+  .box-item {
+    font-size: 16px;
+    color: #333;
+    margin-bottom: 6px;
+    line-height: 1.35;
+    display: flex;
+    gap: 7px;
+  }
+  .vs-badge {
+    font-family: 'Caveat', cursive;
+    font-size: 30px;
+    font-weight: 700;
+    color: #1a1a1a;
+    background: #f4b942;
+    border: 3px solid #1a1a1a;
+    border-radius: 50%;
+    width: 54px; height: 54px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    align-self: center;
+    flex-shrink: 0;
+  }
+
+  /* ── ANALOGY ─────────────────────────────── */
+  .analogy {
+    position: absolute;
+    top: 376px; left: 48px; right: 48px; height: 190px;
+    border: 2.5px solid #1a1a1a;
+    border-radius: 12px;
+    background: #fff9e6;
+    padding: 10px 18px;
+    overflow: hidden;
+  }
+  .analogy-title {
+    font-family: 'Caveat', cursive;
+    font-size: 19px;
+    font-weight: 700;
+    color: #c67c00;
+    margin-bottom: 8px;
+  }
+  .analogy-grid {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 12px;
+    align-items: center;
+  }
+  .analogy-box {
+    border: 2px solid #1a1a1a;
+    border-radius: 10px;
+    background: #fff;
+    padding: 8px 12px;
+    font-size: 15px;
+    line-height: 1.4;
+  }
+  .analogy-box .analogy-name {
+    font-family: 'Caveat', cursive;
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .analogy-box.a .analogy-name { color: #c0392b; }
+  .analogy-box.b .analogy-name { color: #2a9d8f; }
+  .arrow-mid {
+    font-family: 'Caveat', cursive;
+    font-size: 26px;
+    font-weight: 700;
+    color: #888;
+    text-align: center;
+  }
+
+  /* ── TAGS ROW ────────────────────────────── */
+  .tags-row {
+    position: absolute;
+    top: 574px; left: 48px; right: 48px; height: 85px;
+    border: 2.5px dashed #2a9d8f;
+    border-radius: 12px;
+    padding: 10px 18px;
+    background: #f0fbff;
+    overflow: hidden;
+  }
+  .tags-title {
+    font-family: 'Caveat', cursive;
+    font-size: 17px;
+    font-weight: 700;
+    color: #2a9d8f;
+    margin-bottom: 7px;
+  }
+  .tags-grid { display: flex; gap: 10px; }
+  .tag {
+    border: 2px solid #1a1a1a;
+    border-radius: 8px;
+    padding: 3px 13px;
+    font-size: 15px;
+    background: #ffe566;
+    color: #1a1a1a;
+  }
+
+  /* ── CONCLUSION ──────────────────────────── */
+  .conclusion {
+    position: absolute;
+    top: 667px; left: 48px; right: 48px; height: 383px;
+    border: 3px solid #1a1a1a;
+    border-radius: 12px;
+    background: #fff;
+    padding: 16px 20px 14px;
+    overflow: hidden;
+  }
+  .conclusion .big {
+    font-family: 'Caveat', cursive;
+    font-size: 23px;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+  .conclusion .row {
+    font-size: 17px;
+    line-height: 1.5;
+    color: #1a1a1a;
+    margin-bottom: 7px;
+  }
+  .conclusion .divider {
+    border: none;
+    border-top: 1.5px dashed #ddd;
+    margin: 8px 0;
+  }
+  .conclusion .small {
+    font-size: 15.5px;
+    color: #555;
+    line-height: 1.45;
+    margin-bottom: 5px;
+  }
+  /* Signature: position:absolute to guarantee visibility */
+  .signature {
+    position: absolute;
+    bottom: 14px; right: 20px;
+    font-family: 'Caveat', cursive;
+    font-size: 30px;
+    font-weight: 600;
+    color: #444;
+    font-style: italic;
+  }
+
+  /* Highlight helpers */
+  .hl-yellow { background: #ffe566; padding: 1px 5px; border-radius: 3px; }
+  .hl-green  { background: #b7f5c8; padding: 1px 5px; border-radius: 3px; }
+  .hl-red    { background: #ffc8c8; padding: 1px 5px; border-radius: 3px; }
+</style>
+</head>
+<body>
+
+  <!-- ① TITLE: Replace TITLE and SUBTITLE -->
+  <div class="title-banner">
+    <span class="star" style="left:16px">⚡</span>
+    <span class="star" style="right:16px">⚡</span>
+    <h1>[TITLE]</h1>
+    <div class="sub">[Subtitle — one line explaining the hook]</div>
+    <!-- Optional: uncomment to show domain handle -->
+    <!-- <div class="handle">dreamwiseai.com</div> -->
+  </div>
+
+  <!-- ② VS ROW: Replace labels and bullet items -->
+  <div class="vs-row">
+    <div class="box bad">
+      <div class="box-label">[😤 Left Label — BAD/OLD]</div>
+      <div class="box-item"><span>→</span> [Item 1] → <span class="hl-red">[highlight]</span></div>
+      <div class="box-item"><span>→</span> [Item 2] → <span class="hl-red">[highlight]</span></div>
+      <div class="box-item"><span>→</span> [Item 3] → <span class="hl-red">[highlight]</span></div>
+      <div class="box-item"><span>→</span> [Item 4]</div>
+    </div>
+    <div class="vs-badge">VS</div>
+    <div class="box good">
+      <div class="box-label">[🤖 Right Label — GOOD/NEW]</div>
+      <div class="box-item"><span>→</span> [Item 1] → <span class="hl-green">[highlight]</span></div>
+      <div class="box-item"><span>→</span> [Item 2] <span class="hl-yellow">[highlight]</span></div>
+      <div class="box-item"><span>→</span> [Item 3] <span class="hl-green">[highlight]</span></div>
+      <div class="box-item"><span>→</span> [Item 4] <span class="hl-yellow">[highlight]</span></div>
+    </div>
+  </div>
+
+  <!-- ③ ANALOGY: Replace analogy title and both sides -->
+  <div class="analogy">
+    <div class="analogy-title">[🍳 Analogy Section Title]</div>
+    <div class="analogy-grid">
+      <div class="analogy-box a">
+        <div class="analogy-name">[Person/Thing A ❌]</div>
+        [Description of A's approach.]<br>
+        [Result:] <span class="hl-red">[negative outcome]</span>
+      </div>
+      <div class="arrow-mid">→<br>vs<br>→</div>
+      <div class="analogy-box b">
+        <div class="analogy-name">[Person/Thing B ✅]</div>
+        [Description of B's approach] <span class="hl-yellow">[key action]</span>.<br>
+        [Result:] <span class="hl-green">[positive outcome]</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ④ TAGS ROW: Replace title and tag labels -->
+  <div class="tags-row">
+    <div class="tags-title">[🔧 What X can do / Key capabilities:]</div>
+    <div class="tags-grid">
+      <div class="tag">[Tag 1]</div>
+      <div class="tag">[Tag 2]</div>
+      <div class="tag">[Tag 3]</div>
+      <div class="tag">[Tag 4]</div>
+      <div class="tag">[Tag 5]</div>
+    </div>
+  </div>
+
+  <!-- ⑤ CONCLUSION: Replace takeaway lines and signature -->
+  <div class="conclusion">
+    <div class="big">[💡 Section Title — e.g. Takeaway]</div>
+    <div class="row">[Core insight line 1.]</div>
+    <div class="row">[Core insight line 2 with <span class="hl-yellow">highlight</span>.]</div>
+    <div class="row">[Core insight line 3.]</div>
+    <hr class="divider">
+    <div class="row">[Supporting insight with <span class="hl-green">highlight</span>.]</div>
+    <div class="row">[Supporting insight with <span class="hl-yellow">highlight</span>.]</div>
+    <hr class="divider">
+    <div class="small">[📌 Additional context or implication line 1.]</div>
+    <div class="small">[Additional context line 2.]</div>
+    <!-- Signature always at bottom-right — do NOT move -->
+    <div class="signature">— Rick Ren</div>
+  </div>
+
+</body>
+</html>

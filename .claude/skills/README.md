@@ -18,7 +18,7 @@ claude
 
 ## Skills 列表
 
-本项目包含 **27 个 Skills**，覆盖完整 SDLC 流程：
+本项目包含 **40+ 个 Skills**，覆盖完整 SDLC 流程 + YouTube 视频制作流程：
 
 ### 0. 前期准备（可选）
 | Skill | 描述 |
@@ -86,6 +86,68 @@ claude
 | [save-context](#save-context) | 当前对话 → 上下文文件 |
 | [load-context](#load-context) | 上下文文件 → 恢复对话 |
 | [skill-creator](#skill-creator) | 创建或更新 Skill 的指南 |
+
+### 10. 视频制作（YouTube）
+
+> 适用频道：[Rick Ren | Builds AI](https://www.youtube.com/@rickbuildsAI)
+
+**前期准备**
+| Skill | 描述 |
+|-------|------|
+| [youtube-creator-research](#youtube-creator-research) | 分析竞品频道 → 选题规律 + 标题公式 |
+| [video-script-generator](#video-script-generator) | 视频主题 → 完整制作包（脚本/提词器/画面笔记/标题候选） |
+| [demo-code-generator](#demo-code-generator) | production-pack → Live Demo 代码 + DEMO-SCRIPT.md |
+| [video-checklist](#video-checklist) | 脚本 → 四阶段制作 checklist（录制前/中/剪辑/发布） |
+
+**素材制作**
+| Skill | 描述 |
+|-------|------|
+| [html-visual-generator](#html-visual-generator) | 文字/截图 → 单文件 HTML 概念图（需要「读」的画面） |
+| [seedream](#seedream) | 场景描述 → 氛围图/背景图（需要「感受」的画面） |
+| [libtv-skill](#libtv-skill) | 动画描述 → 动态循环 B-roll MP4 |
+
+**发布**
+| Skill | 描述 |
+|-------|------|
+| [youtube-description-generator](#youtube-description-generator) | 视频文件 → YouTube 描述 + 精确时间戳章节 |
+| [youtube-uploader](#youtube-uploader) | 视频路径/标题/封面 → 上传至 YouTube |
+| [linkedin-post-generator](#linkedin-post-generator) | 脚本/SRT → LinkedIn 文案 + 动态 GIF |
+
+**复盘**
+| Skill | 描述 |
+|-------|------|
+| [video-retrospective](#video-retrospective) | 发布后复盘 → 改进点追加至 style-guide.md |
+
+**视频制作推荐工作流：**
+
+```
+选题
+ └─→ /youtube-creator-research（可选）
+       │
+       ↓
+/video-script-generator → production-pack
+       │
+       ├─→ /demo-code-generator（有 Live Demo 时）→ demo/ 代码 + DEMO-SCRIPT.md
+       ├─→ /html-visual-generator → 概念图 HTML
+       ├─→ /seedream → 氛围图
+       ├─→ /libtv-skill → B-roll MP4
+       └─→ /video-checklist → checklist.md
+                    │
+                    ↓
+              录制（OBS + 相机）
+                    │
+                    ↓
+              剪辑（DaVinci Resolve）
+                    │
+                    ↓
+/youtube-description-generator → 描述 + 章节
+/html-visual-generator → 封面 HTML → PNG
+/youtube-uploader → YouTube 链接
+/linkedin-post-generator → LinkedIn 文案
+                    │
+                    ↓（发布 48h 后）
+/video-retrospective → style-guide.md 更新
+```
 
 ## 推荐工作流
 

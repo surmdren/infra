@@ -1,0 +1,164 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: aicofounder
+  namespace: aicofounder-dev
+  labels:
+    app: aicofounder
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: aicofounder
+  template:
+    metadata:
+      labels:
+        app: aicofounder
+    spec:
+      containers:
+        - name: aicofounder
+          image: aicofounder:ca64c6d
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 3000
+          env:
+            - name: NODE_ENV
+              value: production
+            - name: HOSTNAME
+              value: "0.0.0.0"
+            - name: PORT
+              value: "3000"
+            - name: NEXT_PUBLIC_APP_URL
+              value: "https://aicofounder.dreamwiseai.com"
+            - name: GLM_MODEL
+              value: "glm-4-flash"
+            # Supabase
+            - name: NEXT_PUBLIC_SUPABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: aicofounder-secrets
+                  key: supabase-url
+            - name: NEXT_PUBLIC_SUPABASE_ANON_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: aicofounder-secrets
+                  key: supabase-anon-key
+            - name: SUPABASE_SERVICE_ROLE_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: aicofounder-secrets
+                  key: supabase-service-role-key
+            # AI
+            - name: ZHIPU_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: aicofounder-secrets
+                  key: zhipu-api-key
+            - name: DEEPSEEK_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: aicofounder-secrets
+                  key: deepseek-api-key
+            - name: AI_MODEL
+              valueFrom:
+                secretKeyRef:
+                  name: aicofounder-secrets
+                  key: ai-model
+            # Search
+            - name: BRAVE_SEARCH_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: aicofounder-secrets
+                  key: brave-search-api-key
+            # OAuth
+            - name: GITHUB_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: aicofounder-secrets
+                  key: github-client-id
+            - name: GITHUB_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: aicofounder-secrets
+                  key: github-client-secret
+            - name: GOOGLE_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: aicofounder-secrets
+                  key: google-client-id
+            - name: GOOGLE_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: aicofounder-secrets
+                  key: google-client-secret
+            # Payment
+            - name: NEXT_PUBLIC_WECHAT_APP_ID
+              valueFrom:
+                secretKeyRef:
+                  name: aicofounder-secrets
+                  key: wechat-app-id
+            - name: WECHAT_MCH_ID
+              valueFrom:
+                secretKeyRef:
+                  name: aicofounder-secrets
+                  key: wechat-mch-id
+            - name: WECHAT_API_V3_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: aicofounder-secrets
+                  key: wechat-api-v3-key
+            - name: WECHAT_PRIVATE_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: aicofounder-secrets
+                  key: wechat-private-key
+            - name: WECHAT_SERIAL_NO
+              valueFrom:
+                secretKeyRef:
+                  name: aicofounder-secrets
+                  key: wechat-serial-no
+            - name: NEXT_PUBLIC_WECHAT_NOTIFY_URL
+              value: "https://aicofounder.dreamwiseai.com/api/webhook/wechat"
+            - name: NEXT_PUBLIC_PAYPAL_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: aicofounder-secrets
+                  key: paypal-client-id
+            - name: PAYPAL_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: aicofounder-secrets
+                  key: paypal-client-id
+            - name: PAYPAL_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: aicofounder-secrets
+                  key: paypal-client-secret
+            # PostHog
+            - name: NEXT_PUBLIC_POSTHOG_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: aicofounder-secrets
+                  key: posthog-key
+                  optional: true
+          livenessProbe:
+            httpGet:
+              path: /zh
+              port: 3000
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /zh
+              port: 3000
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "256Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"

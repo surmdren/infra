@@ -42,46 +42,73 @@ creator-notes/[年月]/[期数]/script.md   ← 主要内容来源
 
 ## Step 2：生成 LinkedIn Post 文案
 
-### 格式规范
+### 格式规范（基于 Brij Pandey 70万粉丝验证的规律）
 
 **Hook（第1行，最重要）**
-- 不能以 "I" 开头（LinkedIn 算法降权）
-- 强观点 / 反直觉结论 / 具体数据，让人想继续读
-- 单独一行，简洁有力
+- 永远不以 "I" 开头（LinkedIn 算法降权）
+- 15字以内，制造认知落差或反直觉结论
+- 优先用这三个模板：
+  - 反直觉："Most people [do X]. But [surprising truth]."
+  - 现状转折："[Tool/trend] is evolving fast. Most people are still [wrong approach]."
+  - 具体问题："Moving from [A] to [B] is harder than it looks."
 
-**正文（3-5 个 key insights）**
-- 每个 insight 1-2 句，短段落
-- 用空行分隔，便于移动端阅读
-- 从脚本中提取最有价值的观点，而非泛泛总结
+**正文（4-6 个 key insights）**
+- 每个 insight 1-2 句，短段落，空行分隔
+- 用具体工具名（MiniMax、Claude Code、LangGraph），不用泛称（"AI model"、"LLM framework"）
+- 用 `→` 或 `✅` 做 bullet 符号，不用普通破折号
+- 像资深工程师跟同事解释，不学术，不hedging，直接陈述事实
 
-**CTA（结尾）**
-- 一句话引导看视频
-- 附 YouTube 链接（单独一行）
+**结尾双 CTA（关键，缺一不可）**
+1. **讨论问题**：一个针对读者职业现实的具体问题，引发评论（算法最高权重信号）
+   - 好："Which of these bottlenecks have you hit in production?"
+   - 差："What do you think?"
+2. **关注引导**：固定格式，每帖必加
+   ```
+   Follow Rick Ren for more hands-on AI agent breakdowns.
+   ```
+3. **YouTube 链接**（单独一行）
 
 **Hashtags（最后）**
 - 3-5 个，放最后一行
 - 从 `#AIAgent #AITools #ClaudeCode` 中选，加视频主题相关的
 
+**配图（必须包含）**
+- 读取 `references/linkedin-visual-guide.md` 了解配图规范
+- 根据 post 核心观点选择配图类型：
+  - **静态 PNG**：用 `templates/sketchnote-visual.html` 填内容 → Chrome headless 导出
+  - **动态 GIF**（推荐，scroll-stopping）：用 `templates/sketchnote-visual-animated.html` 填内容 → 运行 `scripts/capture_gif.py` 导出
+- 尺寸：1080×1080px，GIF 通常 0.2–0.5 MB，远低于 LinkedIn 5MB 限制
+- 导出详细命令参考 `references/linkedin-visual-guide.md`
+
+**GIF 导出命令（一键）：**
+```bash
+python3 /path/to/scripts/capture_gif.py \
+  --html /path/to/visual-animated.html \
+  --output /path/to/output.gif
+```
+
 ### 风格要求
 - 纯英文
-- 不带 emoji
+- 不带装饰性 emoji（只用 `→` `✅` `🔹` 做结构符号）
 - 专业但不学术，像从业者写给从业者
-- 总长度控制在 1200 字符以内（LinkedIn 最佳实践）
+- 总长度控制在 1300 字符以内
 
 ### Post 模板
 
 ```
-[强 Hook，单行]
+[Hook，反直觉或制造落差，≤15词]
 
-[Insight 1，1-2句]
+[Insight 1，1-2句，含具体工具名]
 
 [Insight 2，1-2句]
 
 [Insight 3，1-2句]
 
-[可选 Insight 4]
+[Insight 4，1-2句]
 
-[CTA 一句话]
+[针对读者职业现实的讨论问题？]
+
+Follow Rick Ren for more hands-on AI agent breakdowns.
 [YouTube 链接]
 
 [#hashtag1 #hashtag2 #hashtag3]

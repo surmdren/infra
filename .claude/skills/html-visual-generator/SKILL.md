@@ -120,8 +120,9 @@ user-invocable: true
 
 **保存位置优先级：**
 1. 如果用户指定了路径，保存到指定路径
-2. 如果在项目目录中，保存到 `assets/` 子目录
-3. 默认保存到 `/tmp/` 目录
+2. 如果在视频制作项目中，保存到仓库根目录下的 `[年月]/[期数]-[slug]/assets/visuals/`（注意：不是 `creator-notes/` 里，参考 README 目录结构）
+3. 如果在其他项目目录中，保存到 `assets/visuals/` 子目录
+4. 默认保存到 `/tmp/` 目录
 
 **文件命名：**
 - 使用描述性名称：`pricing-comparison.html`、`agent-workflow-flow.html`

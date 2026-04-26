@@ -13,7 +13,7 @@ import requests
 
 TOKEN_PATH = os.path.expanduser("~/.config/linkedin-publisher/token.json")
 REDIRECT_URI = "http://localhost:8080/callback"
-SCOPE = "r_liteprofile w_member_social"
+SCOPE = "openid profile w_member_social"
 
 CLIENT_ID = os.environ["LINKEDIN_CLIENT_ID"]
 CLIENT_SECRET = os.environ["LINKEDIN_CLIENT_SECRET"]

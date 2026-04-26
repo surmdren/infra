@@ -453,6 +453,18 @@ create_insight() {
     | python3 -c "import sys,json; d=json.load(sys.stdin); print('  ✅', d.get('name','?'), '- ID:', d.get('id','?'))"
 }
 
+# Overview: Page Views
+create_insight "[Overview] Page Views" \
+  "{\"events\":[{\"id\":\"\$pageview\",\"math\":\"total\"}],\"display\":\"ActionsLineGraph\",\"properties\":[{\"key\":\"\$host\",\"value\":\"${DOMAIN}\",\"operator\":\"exact\",\"type\":\"event\"}],\"date_from\":\"-30d\"}"
+
+# Overview: Page Leave
+create_insight "[Overview] Page Leave" \
+  "{\"events\":[{\"id\":\"\$pageleave\",\"math\":\"total\"}],\"display\":\"ActionsLineGraph\",\"properties\":[{\"key\":\"\$host\",\"value\":\"${DOMAIN}\",\"operator\":\"exact\",\"type\":\"event\"}],\"date_from\":\"-30d\"}"
+
+# Overview: Session Duration
+create_insight "[Overview] Session Duration (avg)" \
+  "{\"events\":[{\"id\":\"\$pageview\",\"math\":\"avg\",\"math_property\":\"\$session_duration\"}],\"display\":\"ActionsLineGraph\",\"properties\":[{\"key\":\"\$host\",\"value\":\"${DOMAIN}\",\"operator\":\"exact\",\"type\":\"event\"}],\"date_from\":\"-30d\"}"
+
 # Acquisition: UTM source breakdown
 create_insight "[Acquisition] UTM Source Breakdown" \
   "{\"events\":[{\"id\":\"\$pageview\"}],\"breakdown\":\"utm_source\",\"breakdown_type\":\"event\",\"properties\":[{\"key\":\"\$host\",\"value\":\"${DOMAIN}\",\"operator\":\"exact\",\"type\":\"event\"}],\"date_from\":\"-30d\"}"
