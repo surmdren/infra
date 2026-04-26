@@ -1,0 +1,253 @@
+# Supabase Helm Chart Values - K3s 生产环境 (HK)
+# 域名: supabase.dreamwiseai.com / supabase-studio.dreamwiseai.com
+# 存储: local-path provisioner (k3s 默认)
+# 访问: Cloudflare Tunnel → Traefik Ingress → ClusterIP Service
+
+secret:
+  jwt:
+    anonKey: "eyJhbGciOiAiSFMyNTYiLCAidHlwIjogIkpXVCJ9.eyJyb2xlIjogImFub24iLCAiaXNzIjogInN1cGFiYXNlIiwgImlhdCI6IDE2NDE3NjkyMDAsICJleHAiOiAxOTk5OTk5OTk5fQ._G0fv8qSvdZs78k80xtEpixPKdobBfX89PhHCLUYLzI"
+    serviceKey: "eyJhbGciOiAiSFMyNTYiLCAidHlwIjogIkpXVCJ9.eyJyb2xlIjogInNlcnZpY2Vfcm9sZSIsICJpc3MiOiAic3VwYWJhc2UiLCAiaWF0IjogMTY0MTc2OTIwMCwgImV4cCI6IDE5OTk5OTk5OTl9.b6fQ77Nd5guHO4uulSWRv7Z6saKRmgsoF8xXpFnhX34"
+    secret: "pg61oo6a0BICim44d4n31kNB7M1C9mu506u9Heyod_g"
+
+  db:
+    password: "FDUaQnaxHUaqL5xZcdE8pErY"
+    database: "postgres"
+
+  analytics:
+    publicAccessToken: "4xBMb8tOYzQCV1ent7yKogYxRr4w4xuB"
+    privateAccessToken: "2t3Izj9SS7i7IZnoUEsxtMzk"
+
+  smtp:
+    username: "resend"
+    password: "re_4bStSteG_6KTFLYnL7TJSoQDwvw3XK8hQ"
+
+  dashboard:
+    username: "supabase"
+    password: "Y4o6iQhp1ztzE1AO"
+    openAiApiKey: "placeholder"
+
+  s3:
+    keyId: "c4e5876bbc442c28a1e45a10ec9e3256"
+    accessKey: "f82bdbb17ac53ed1d41f535df79994b17e7263d31d362dcc072e2ac2f6b0a977"
+
+  realtime:
+    secretKeyBase: "RpUexeljnJEbwbgc1ofO2xmytgCTNA8Ddw-ynWTVFvkkyw_cqLy5JgvhOMVKTVWV"
+
+  meta:
+    cryptoKey: "FJEfY8xZIQLjyC5srAXGzBUoz7w7RE5I"
+
+  minio:
+    user: "supa-storage"
+    password: "GDsd05gO64TLDby_"
+
+# ─── 环境变量配置 ──────────────────────────────────────
+environment:
+  kong:
+    KONG_DATABASE: "off"
+    KONG_DECLARATIVE_CONFIG: "/usr/local/kong/kong.yml"
+
+  auth:
+    API_EXTERNAL_URL: "https://supabase.dreamwiseai.com"
+    GOTRUE_SITE_URL: "https://supabase.dreamwiseai.com"
+    GOTRUE_URI_ALLOW_LIST: "*"
+    GOTRUE_DISABLE_SIGNUP: "false"
+    GOTRUE_JWT_EXPIRY: "3600"
+    GOTRUE_EXTERNAL_EMAIL_ENABLED: "true"
+    GOTRUE_MAILER_AUTOCONFIRM: "false"
+    GOTRUE_SMTP_ADMIN_EMAIL: "noreply@dreamwiseai.com"
+    GOTRUE_SMTP_HOST: "smtp.resend.com"
+    GOTRUE_SMTP_PORT: "587"
+    GOTRUE_SMTP_SENDER_NAME: "DreamAI"
+
+  studio:
+    STUDIO_DEFAULT_ORGANIZATION: "DreamAI"
+    STUDIO_DEFAULT_PROJECT: "DreamAI Platform"
+    SUPABASE_PUBLIC_URL: "https://supabase.dreamwiseai.com"
+    NEXT_PUBLIC_ENABLE_LOGS: "true"
+
+  rest:
+    PGRST_DB_SCHEMAS: "public,storage,graphql_public"
+    PGRST_DB_ANON_ROLE: "anon"
+    PGRST_DB_USE_LEGACY_GUCS: "false"
+    PGRST_APP_SETTINGS_JWT_EXP: "3600"
+
+  realtime:
+    PORT: "4000"
+    DB_SSL: "false"
+    DNS_NODES: "''"
+    RLIMIT_NOFILE: "10000"
+
+  storage:
+    STORAGE_BACKEND: "s3"
+    GLOBAL_S3_BUCKET: "supabase-storage"
+    GLOBAL_S3_ENDPOINT: "http://supabase-minio:9000"
+    GLOBAL_S3_FORCE_PATH_STYLE: "true"
+    GLOBAL_S3_PROTOCOL: "http"
+    REGION: "local"
+    IMGPROXY_URL: "http://supabase-imgproxy:5001"
+    FILE_SIZE_LIMIT: "52428800"
+
+  db:
+    POSTGRES_HOST: "/var/run/postgresql"
+    POSTGRES_PORT: "5432"
+    POSTGRES_DB: "postgres"
+    PGDATA: "/var/lib/postgresql/data"
+    JWT_EXP: "3600"
+
+  analytics:
+    LOGFLARE_SUPABASE_MODE: "true"
+    LOGFLARE_MIN_CLUSTER_SIZE: "1"
+
+# ─── 持久化存储（k3s local-path provisioner 动态分配）──
+persistence:
+  db:
+    enabled: true
+    storageClassName: "local-path"
+    size: 50Gi
+    accessModes:
+      - ReadWriteOnce
+
+  storage:
+    enabled: true
+    storageClassName: "local-path"
+    size: 100Gi
+    accessModes:
+      - ReadWriteOnce
+
+  minio:
+    enabled: true
+    storageClassName: "local-path"
+    size: 100Gi
+    accessModes:
+      - ReadWriteOnce
+
+# ─── Ingress（Traefik）────────────────────────────────
+ingress:
+  enabled: true
+  className: "traefik"
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: "web,websecure"
+  tls: []
+
+# ─── Studio ────────────────────────────────────────────
+studio:
+  enabled: true
+
+# ─── 资源限制（总 requests ≤ 0.5C/1Gi，limits 超配）────────
+deployment:
+  db:
+    resources:
+      requests:
+        memory: "100Mi"
+        cpu: "50m"
+      limits:
+        memory: "1Gi"
+        cpu: "1000m"
+
+  auth:
+    resources:
+      requests:
+        memory: "70Mi"
+        cpu: "30m"
+      limits:
+        memory: "256Mi"
+        cpu: "500m"
+
+  rest:
+    resources:
+      requests:
+        memory: "70Mi"
+        cpu: "30m"
+      limits:
+        memory: "256Mi"
+        cpu: "500m"
+
+  realtime:
+    resources:
+      requests:
+        memory: "70Mi"
+        cpu: "30m"
+      limits:
+        memory: "256Mi"
+        cpu: "500m"
+
+  storage:
+    resources:
+      requests:
+        memory: "70Mi"
+        cpu: "30m"
+      limits:
+        memory: "256Mi"
+        cpu: "500m"
+
+  studio:
+    resources:
+      requests:
+        memory: "70Mi"
+        cpu: "30m"
+      limits:
+        memory: "512Mi"
+        cpu: "500m"
+
+  kong:
+    resources:
+      requests:
+        memory: "70Mi"
+        cpu: "30m"
+      limits:
+        memory: "512Mi"
+        cpu: "1000m"
+
+  minio:
+    resources:
+      requests:
+        memory: "70Mi"
+        cpu: "30m"
+      limits:
+        memory: "512Mi"
+        cpu: "500m"
+
+  analytics:
+    resources:
+      requests:
+        memory: "70Mi"
+        cpu: "30m"
+      limits:
+        memory: "1Gi"
+        cpu: "500m"
+
+  imgproxy:
+    resources:
+      requests:
+        memory: "70Mi"
+        cpu: "30m"
+      limits:
+        memory: "256Mi"
+        cpu: "500m"
+
+  meta:
+    resources:
+      requests:
+        memory: "70Mi"
+        cpu: "30m"
+      limits:
+        memory: "256Mi"
+        cpu: "500m"
+
+  vector:
+    resources:
+      requests:
+        memory: "70Mi"
+        cpu: "30m"
+      limits:
+        memory: "256Mi"
+        cpu: "500m"
+
+  functions:
+    resources:
+      requests:
+        memory: "70Mi"
+        cpu: "30m"
+      limits:
+        memory: "256Mi"
+        cpu: "500m"

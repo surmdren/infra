@@ -1,0 +1,44 @@
+# Supabase Ingress - K3s Prod / Traefik
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: supabase-api
+  namespace: supabase
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: "web,websecure"
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: supabase.dreamwiseai.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: supabase-supabase-kong
+                port:
+                  number: 8000
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: supabase-studio
+  namespace: supabase
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: "web,websecure"
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: supabase-studio.dreamwiseai.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: supabase-supabase-studio
+                port:
+                  number: 3000
